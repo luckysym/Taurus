@@ -12,7 +12,15 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 
-add_library( ${PROJECT_NAME} SHARED
+# 生成库
+add_library( ${PROJECT_NAME} 
     ${PROJECT_SOURCE_DIR}/src/sys/system_error.cpp
     ${PROJECT_SOURCE_DIR}/src/net/protocol.cpp
+    ${PROJECT_SOURCE_DIR}/src/net/inet_address.cpp
 )
+
+# 设置项目根目录
+set( PROJECT_ROOT_DIR ${PROJECT_SOURCE_DIR} )
+
+# 构建tools子目录
+add_subdirectory(tools)
