@@ -56,31 +56,36 @@ namespace net {
         typedef std::shared_ptr<InetAddress> Ptr;
         typedef std::vector<Ptr> Vector;
     private:
-        int m_domain;
+        int      m_domain;
+        void   * m_paddr;
+        size_t   m_addrlen;
+        mutable std::string m_hostname;
 
     protected:
-        InetAddress(int domain) : m_domain(domain) {}
+        InetAddress(int domain, void *paddr, size_t addrlen);
         InetAddress(const InetAddress& other) : m_domain(other.m_domain) {}
         InetAddress & operator=(const InetAddress& other);
 
     public:
-        virtual ~InetAddress() {}
+        virtual ~InetAddress();
         virtual bool operator==(const InetAddress& addr) const;
 
         int  Domain() const { return m_domain; }
         bool IsReachable(int timeout) const;   ///< 检测
         bool IsSiteLocalAddress() const;       ///< 是否本地地址。
 
-    public:
-        /// 获取IP地址的字节数组。
-        virtual ssize_t      GetAddress(char * buffer, size_t n) const = 0; 
 
         /// 获取IP地址转化为可读的文本格式。
-        virtual std::string  GetHostAddress() const = 0;
+        std::string  GetHostAddress() const;
 
         /// 获取IP地址对应的主机名，通常需要查询系统hosts文件或者域名服务。
-        virtual std::string GetHostName() const = 0;
+        std::string GetHostName() const;
 
+        /// 获取IP地址的字节数组。
+        size_t GetAddress(char * buffer, size_t n) const; 
+
+    public:
+        
         /// 是否本地任意地址。
         virtual bool IsAnyLocalAddress() const = 0;
 
@@ -100,6 +105,7 @@ namespace net {
      */
     class Inet4Address : public InetAddress {
         uint32_t m_addr;
+        mutable std::string m_hostname;
     public:
         Inet4Address();  // 默认构造，初始化为一个ANY地址。
         Inet4Address(uint32_t addr);     // 构造指定的地址。
@@ -112,15 +118,6 @@ namespace net {
         virtual bool operator==(const Inet4Address &other) const;
 
     public:  // 继承自InetAddress
-        /// 获取IP地址的字节数组。
-        virtual ssize_t      GetAddress(char * buffer, size_t n) const; 
-
-        /// 获取IP地址转化为可读的文本格式。
-        virtual std::string  GetHostAddress() const;
-
-        /// 获取IP地址对应的主机名，通常需要查询系统hosts文件或者域名服务。
-        virtual std::string GetHostName() const;
-
         /// 是否本地任意地址。
         virtual bool IsAnyLocalAddress() const;
 
@@ -137,6 +134,7 @@ namespace net {
     class Inet6Address : public InetAddress {
     private:
         unsigned char m_addr[16];
+        mutable std::string m_hostname;
     public:
         Inet6Address();  // 默认构造，初始化为一个ANY地址。
         Inet6Address(const unsigned char addr[16]);     // 构造指定的地址。
@@ -148,15 +146,6 @@ namespace net {
 
         virtual bool operator==(const Inet6Address &other) const;
     public:  // 继承自InetAddress
-        /// 获取IP地址的字节数组。
-        virtual ssize_t      GetAddress(char * buffer, size_t n) const; 
-
-        /// 获取IP地址转化为可读的文本格式。
-        virtual std::string  GetHostAddress() const;
-
-        /// 获取IP地址对应的主机名，通常需要查询系统hosts文件或者域名服务。
-        virtual std::string GetHostName() const;
-
         /// 是否本地任意地址。
         virtual bool IsAnyLocalAddress() const ;
 
