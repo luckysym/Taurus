@@ -71,9 +71,6 @@ namespace net {
         virtual bool operator==(const InetAddress& addr) const;
 
         int  Domain() const { return m_domain; }
-        bool IsReachable(int timeout) const;   ///< 检测
-        bool IsSiteLocalAddress() const;       ///< 是否本地地址。
-
 
         /// 获取IP地址转化为可读的文本格式。
         std::string  GetHostAddress() const;
@@ -96,8 +93,11 @@ namespace net {
         virtual std::string ToString() const = 0;
 
     public:
-        /// 获取指定主机名的所有关联IP地址。
+        /// 获取指定主机名的所有关联IP地址，返回实际获取的地址数
         static ssize_t GetAllByName(Vector & vecAddr, const char *hostname);
+
+        /// 获取所有本地地址（不包括回环地址），返回实际获取的地址数。
+        static ssize_t GetLocalHost(Vector & vecAddr);
     }; // end class InetAddress
 
     /**
@@ -137,7 +137,7 @@ namespace net {
         mutable std::string m_hostname;
     public:
         Inet6Address();  // 默认构造，初始化为一个ANY地址。
-        Inet6Address(const unsigned char addr[16]);     // 构造指定的地址。
+        Inet6Address(const unsigned char addr[16], size_t n);     // 构造指定的地址。 n=16
         Inet6Address(const char *addr);  // 文本地址构造。
         Inet6Address(const Inet6Address &other);
         virtual ~Inet6Address();
