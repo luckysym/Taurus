@@ -9,6 +9,16 @@ namespace taurus  {
 namespace net {
 
     /**
+     * @brief 网络相关错误类。
+     */
+    class NetworkError {};
+
+    /**
+     * @brief Socket错误类。
+     */
+    class SocketError {};
+
+    /**
      * @brief Socket协议对象。
      */
     class Protocol final {
@@ -40,12 +50,12 @@ namespace net {
         static const Protocol  Udp6;   ///< Udp v6协议类
         static const Protocol  Unix;   ///< Unix管道协议类
 
-        static const int DomainInet4;
-        static const int DomainInet6;
-        static const int DomainUnix;
+        static const int DomainInet4;  ///< AF_INET
+        static const int DomainInet6;  ///< AF_INT6
+        static const int DomainUnix;   ///< AF_UNIX
 
-        static const int TypeStream;
-        static const int TypeDatagram;
+        static const int TypeStream;   ///< SOCK_STREAM
+        static const int TypeDatagram; ///< SOCK_DATADGRAM
     }; // end class Protocol
 
     /**
@@ -104,8 +114,9 @@ namespace net {
      * @brief IPv4地址类。
      */
     class Inet4Address : public InetAddress {
-        uint32_t m_addr;
-        mutable std::string m_hostname;
+    private:
+        uint32_t            m_addr;
+
     public:
         Inet4Address();  // 默认构造，初始化为一个ANY地址。
         Inet4Address(uint32_t addr);     // 构造指定的地址。
@@ -133,7 +144,7 @@ namespace net {
      */
     class Inet6Address : public InetAddress {
     private:
-        unsigned char m_addr[16];
+        unsigned char       m_addr[16];
         mutable std::string m_hostname;
     public:
         Inet6Address();  // 默认构造，初始化为一个ANY地址。
@@ -145,6 +156,7 @@ namespace net {
         Inet6Address& operator=(const Inet6Address &other);
 
         virtual bool operator==(const Inet6Address &other) const;
+
     public:  // 继承自InetAddress
         /// 是否本地任意地址。
         virtual bool IsAnyLocalAddress() const ;
@@ -156,5 +168,79 @@ namespace net {
         virtual std::string ToString() const;
 
     }; // end class Inet6Address
+
+    /**
+     * @brief Socket地址类
+     */
+    class SocketAddress {
+    public:
+        virtual ~SocketAddress() { }
+
+        virtual struct sockaddr * CAddress() = 0;
+        virtual const struct sockaddr * CAddress() const = 0;
+    }; // end class SocketAddress
+
+    /**
+     * @brief InetSocketAddress类。
+     */
+    class InetSocketAddress : public SocketAddress {
+    public:
+        InetSocketAddress();
+        InetSocketAddress(const InetAddress &rAddr, int port);
+        InetSocketAddress(const InetSocketAddress &other);
+        InetSocketAddress(InetSocketAddress &&other);
+        virtual ~InetSocketAddress();
+
+        InetSocketAddress & operator=(const InetSocketAddress &other);
+        InetSocketAddress & operator=(InetSocketAddress &&other);
+        
+        int GetPort() const;
+        const InetAddress * GetAddress() const;
+        InetAddress * GetAddress();
+
+        std::string ToString() const;
+
+    public:  // 继承自SocketAddress
+        virtual struct sockaddr * CAddress() ;
+        virtual const struct sockaddr * CAddress() const
+    }; // end class InetSocketAddress
+
+    /**
+     * @brief Socket基础类
+     */
+    class SocketImpl {
+    protected:
+        SocketImpl();
+        SocketImpl(int handle);
+        SocketImpl(int af, int type, int proto);
+        SocketImpl(const SocketImpl &other) = delete; 
+        SocketImpl(SocketImpl && other);
+        virtual ~SocketImpl();
+
+        SocketImpl & operator=(SocketImpl &&other) ;
+        SocketImpl & operator=(const SocketImpl& other) = delete;
+
+    public:
+        int  GetHandle() const ;
+        bool Close();
+    }; // end class Socket
+
+    /**
+     * @brief 负责服务端监听的Socket
+     */
+    class ServerSocket : public Socket {
+    }; // end class ServerSocket
+
+    /**
+     * @brief StreamSocket类，面向数据流的Socket.
+     */
+    class StreamSocket : public Socket {
+    }; // end class StreamSocket
+
+    /**
+     * @brief 面向数据报文的Socket.
+     */
+    class DatagramSocket : public Socket {
+    }; // end class DatagramSocket
 
 }} // end namespace taurus::net
