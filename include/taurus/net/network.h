@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <memory>
 
 namespace taurus  {
 namespace net {
@@ -125,7 +126,6 @@ namespace net {
         virtual ~Inet4Address();
 
         Inet4Address& operator=(const Inet4Address &other);
-
         virtual bool operator==(const Inet4Address &other) const;
 
     public:  // 继承自InetAddress
@@ -146,6 +146,7 @@ namespace net {
     private:
         unsigned char       m_addr[16];
         mutable std::string m_hostname;
+
     public:
         Inet6Address();  // 默认构造，初始化为一个ANY地址。
         Inet6Address(const unsigned char addr[16], size_t n);     // 构造指定的地址。 n=16
@@ -202,45 +203,37 @@ namespace net {
 
     public:  // 继承自SocketAddress
         virtual struct sockaddr * CAddress() ;
-        virtual const struct sockaddr * CAddress() const
+        virtual const struct sockaddr * CAddress() const;
     }; // end class InetSocketAddress
+
+    typedef std::shared_ptr<InetSocketAddress> InetSocketAddressPtr;
 
     /**
      * @brief Socket基础类
      */
-    class SocketImpl {
-    protected:
-        SocketImpl();
-        SocketImpl(int handle);
-        SocketImpl(int af, int type, int proto);
-        SocketImpl(const SocketImpl &other) = delete; 
-        SocketImpl(SocketImpl && other);
-        virtual ~SocketImpl();
-
-        SocketImpl & operator=(SocketImpl &&other) ;
-        SocketImpl & operator=(const SocketImpl& other) = delete;
-
-    public:
-        int  GetHandle() const ;
-        bool Close();
-    }; // end class Socket
+    class SocketImpl;
 
     /**
      * @brief 负责服务端监听的Socket
      */
-    class ServerSocket : public Socket {
+    class ServerSocket {
+    public:
+        bool Bind(const InetAddress &rAddr, int port);
+        bool Listen(int backlog);
+        const InetAddress *  GetLocalAddress() const;
+        int  GetLocalPort() const;
     }; // end class ServerSocket
 
     /**
      * @brief StreamSocket类，面向数据流的Socket.
      */
-    class StreamSocket : public Socket {
+    class StreamSocket  {
     }; // end class StreamSocket
 
     /**
      * @brief 面向数据报文的Socket.
      */
-    class DatagramSocket : public Socket {
+    class DatagramSocket  {
     }; // end class DatagramSocket
 
 }} // end namespace taurus::net

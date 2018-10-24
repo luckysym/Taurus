@@ -9,6 +9,7 @@ namespace system {
     private:
         int errno_;
         std::string message_;
+        
     public:
         SystemError() : errno_(0) {}
         SystemError(int e, const char *msg) : errno_(e), message_(msg) {}
