@@ -64,8 +64,8 @@ namespace net {
      */
     class InetAddress {
     public:
-        typedef std::shared_ptr<InetAddress> Ptr;
-        typedef std::vector<Ptr> Vector;
+        using Ptr = std::shared_ptr<InetAddress>;
+        using Vector = std::vector<Ptr>;
     private:
         int      m_domain;
         void   * m_paddr;
@@ -115,6 +115,9 @@ namespace net {
      * @brief IPv4地址类。
      */
     class Inet4Address : public InetAddress {
+    public:
+        using Ptr = std::shared_ptr<Inet4Address>;
+
     private:
         uint32_t            m_addr;
 
@@ -175,6 +178,9 @@ namespace net {
      */
     class SocketAddress {
     public:
+        using Ptr = std::shared_ptr<SocketAddress>;
+
+    public:
         virtual ~SocketAddress() { }
 
         virtual struct sockaddr * CAddress() = 0;
@@ -185,6 +191,9 @@ namespace net {
      * @brief InetSocketAddress类。
      */
     class InetSocketAddress : public SocketAddress {
+    public:
+        using Ptr = std::shared_ptr<InetSocketAddress>;
+
     public:
         InetSocketAddress();
         InetSocketAddress(const InetAddress &rAddr, int port);
@@ -205,8 +214,6 @@ namespace net {
         virtual struct sockaddr * CAddress() ;
         virtual const struct sockaddr * CAddress() const;
     }; // end class InetSocketAddress
-
-    typedef std::shared_ptr<InetSocketAddress> InetSocketAddressPtr;
 
     /**
      * @brief Socket基础类

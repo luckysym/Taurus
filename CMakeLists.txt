@@ -22,5 +22,10 @@ add_library( ${PROJECT_NAME}
 # 设置项目根目录
 set( PROJECT_ROOT_DIR ${PROJECT_SOURCE_DIR} )
 
+ENABLE_TESTING()
+
+# 构建测试子目录
+add_subdirectory(test)
+
 # 构建tools子目录
-add_subdirectory(tools)
+# add_subdirectory(tools)
