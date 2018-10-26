@@ -93,7 +93,7 @@ namespace net {
         std::string GetHostName() const;
 
         /// 获取IP地址的字节数组。
-        size_t GetAddress(char * buffer, size_t n) const; 
+        size_t GetAddress(void * buffer, size_t n) const; 
 
     public:
         /// 是否本地任意地址。
@@ -126,7 +126,7 @@ namespace net {
     public:
         Inet4Address();  // 默认构造，初始化为一个ANY地址。
         Inet4Address(uint32_t addr);     // 构造指定的地址。
-        Inet4Address(const char *addr);  // 文本地址构造。
+        Inet4Address(const char *addrstr);  // 文本地址构造。xxx.xxx.xxx.xxx
         Inet4Address(const Inet4Address &other);
         virtual ~Inet4Address();
 
@@ -155,7 +155,7 @@ namespace net {
     public:
         Inet6Address();  // 默认构造，初始化为一个ANY地址。
         Inet6Address(const unsigned char addr[16], size_t n);     // 构造指定的地址。 n=16
-        Inet6Address(const char *addr);  // 文本地址构造。
+        Inet6Address(const char *addrstr);  // 文本地址构造, xxxx:xxxx:xxxx...。
         Inet6Address(const Inet6Address &other);
         virtual ~Inet6Address();
 
@@ -185,6 +185,7 @@ namespace net {
     public:
         virtual ~SocketAddress() { }
 
+        virtual int Domain() const = 0;
         virtual struct sockaddr * CAddress() = 0;
         virtual const struct sockaddr * CAddress() const = 0;
         virtual socklen_t CAddressSize() const = 0;
@@ -196,7 +197,10 @@ namespace net {
     class InetSocketAddress : public SocketAddress {
     public:
         using Ptr = std::shared_ptr<InetSocketAddress>;
-
+        
+    private:
+        struct InetSocketAddressImpl;
+        InetSocketAddressImpl * m_pImpl;
     public:
         InetSocketAddress();
         InetSocketAddress(const InetAddress &rAddr, int port);
@@ -213,10 +217,11 @@ namespace net {
 
         std::string ToString() const;
 
-    public:  // 继承自SocketAddress
+    public:
+        virtual int Domain() const ;
         virtual struct sockaddr * CAddress() ;
         virtual const struct sockaddr * CAddress() const;
-        virtual socklen_t CAddressSize() const;
+        virtual socklen_t CAddressSize() const ;
     }; // end class InetSocketAddress
 
     /**
