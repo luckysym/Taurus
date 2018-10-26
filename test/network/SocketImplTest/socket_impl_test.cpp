@@ -6,13 +6,16 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <unistd.h>
 
+#include <iostream>
+
 using namespace taurus::net;
+using namespace std;
 
 class SocketImpTest : public CppUnit::TestFixture {
     // 声明一个TestSuite
     CPPUNIT_TEST_SUITE( SocketImpTest );
     // 添加测试用例到TestSuite, 定义新的测试用例需要在这儿声明一下
-    CPPUNIT_TEST( testCreate );
+    CPPUNIT_TEST( testServerSocket );
     // TestSuite声明完成
     CPPUNIT_TEST_SUITE_END();
 
@@ -20,16 +23,40 @@ private:
     SocketImpl::Ptr m_ptrSockImpl;
 
 public:
-    SocketImpTest() {}
+    SocketImpTest() {
+        cout<<"construct"<<endl;
+    }
 
-    void setUp () {}
-    void tearDown() {}
-    void testCreate() { 
+    void setUp () { 
+        CreateSocket();
+    }
+    void tearDown() {
+        CloseSocket();
+    }
+
+    void testServerSocket() {
+
+    }
+
+protected:
+    void CreateSocket() {
         m_ptrSockImpl = std::make_shared<SocketImpl>();
         printf("%p\n", m_ptrSockImpl.get());
         CPPUNIT_ASSERT( m_ptrSockImpl != nullptr );
+
+        std::string errinfo;
+        CPPUNIT_ASSERT( m_ptrSockImpl->Create(Protocol::Tcp4, errinfo) );
+        CPPUNIT_ASSERT( m_ptrSockImpl->Fd() > 0 );
+        CPPUNIT_ASSERT( m_ptrSockImpl->State() == SocketImpl::SOCK_STATE_CREATED );
+        cout<<"socket created, fd: "<<m_ptrSockImpl->Fd()<<endl;
     }
-  // 可以添加新的测试函数
+    void CloseSocket() {
+        std::string errinfo;
+        CPPUNIT_ASSERT(m_ptrSockImpl->Close(errinfo));
+        CPPUNIT_ASSERT( m_ptrSockImpl->Fd() == INVALID_SOCKET );
+        CPPUNIT_ASSERT( m_ptrSockImpl->State() == SocketImpl::SOCK_STATE_CLOSED );
+    }
+
 }; // end class SocketImpTest
 
 // CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( SocketImpTest, "alltest" );
@@ -43,4 +70,3 @@ int main(int argc, char **argv)
     runner.run();
     return 0;
 }
-

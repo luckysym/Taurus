@@ -6,6 +6,9 @@
 #include <vector>
 #include <memory>
 
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+
 namespace taurus  {
 namespace net {
 
@@ -42,7 +45,7 @@ namespace net {
 
         int Domain() const { return m_domain; }    ///< 获取并返回address family
         int Type() const { return m_type; }      ///< 获取并返回socket type
-        int Value() const { return m_proto; }     ///< 获取并返回socket protocol value
+        int Proto() const { return m_proto; }     ///< 获取并返回socket protocol value
 
     public:
         static const Protocol  Tcp4;   ///< Tcp v4协议类
@@ -93,7 +96,6 @@ namespace net {
         size_t GetAddress(char * buffer, size_t n) const; 
 
     public:
-        
         /// 是否本地任意地址。
         virtual bool IsAnyLocalAddress() const = 0;
 
@@ -185,6 +187,7 @@ namespace net {
 
         virtual struct sockaddr * CAddress() = 0;
         virtual const struct sockaddr * CAddress() const = 0;
+        virtual socklen_t CAddressSize() const = 0;
     }; // end class SocketAddress
 
     /**
@@ -213,6 +216,7 @@ namespace net {
     public:  // 继承自SocketAddress
         virtual struct sockaddr * CAddress() ;
         virtual const struct sockaddr * CAddress() const;
+        virtual socklen_t CAddressSize() const;
     }; // end class InetSocketAddress
 
     /**
