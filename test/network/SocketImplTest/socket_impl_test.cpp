@@ -35,7 +35,8 @@ public:
     }
 
     void testServerSocket() {
-
+        this->BindSocket();
+        this->ListenSocket();
     }
 
 protected:
@@ -52,9 +53,18 @@ protected:
     }
     void CloseSocket() {
         std::string errinfo;
-        CPPUNIT_ASSERT(m_ptrSockImpl->Close(errinfo));
+        CPPUNIT_ASSERT( m_ptrSockImpl->Close(errinfo));
         CPPUNIT_ASSERT( m_ptrSockImpl->Fd() == INVALID_SOCKET );
         CPPUNIT_ASSERT( m_ptrSockImpl->State() == SocketImpl::SOCK_STATE_CLOSED );
+    }
+    void BindSocket () {
+        std::string errinfo;
+        CPPUNIT_ASSERT( m_ptrSockImpl->Bind(Inet4Address(), 10024, errinfo));
+    }
+    void ListenSocket() {
+        std::string errinfo;
+        CPPUNIT_ASSERT( m_ptrSockImpl->Listen(SOMAXCONN, errinfo));
+        CPPUNIT_ASSERT( m_ptrSockImpl->State() == SocketImpl::SOCK_STATE_OPEN );
     }
 
 }; // end class SocketImpTest
