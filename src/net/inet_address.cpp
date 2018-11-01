@@ -225,10 +225,25 @@ class InetSocketAddress::InetSocketAddressImpl {
     static const size_t ADDR_BUFFER_SIZE = 32;
 private:
     InetAddress::Ptr m_ptrAddress;
-    int               m_port;
-    mutable char      m_addrbuf[ADDR_BUFFER_SIZE];
+    int              m_port;
+    mutable char     m_addrbuf[ADDR_BUFFER_SIZE];
 
 public:
+    InetSocketAddressImpl(const struct sockaddr *paddr, socklen_t addrlen) {
+        int af = paddr->sa_family;
+        if ( af == AF_INET ) {
+            auto pinaddr = (const struct sockaddr_in *)paddr;
+            m_ptrAddress.reset(new Inet4Address(pinaddr->sin_addr.s_addr));
+            m_port = ntohs(pinaddr->sin_port);
+        } else if ( af == AF_INET6 ) {
+            auto pin6addr = (const struct sockaddr_in6 *)paddr;
+            m_ptrAddress.reset(new Inet6Address(pin6addr->sin6_addr.s6_addr, 16));
+            m_port = ntohs(pin6addr->sin6_port);
+        } else {
+            throw std::runtime_error("InetSocketAddressImpl, invalid inet address domain");
+        }
+    }
+
     InetSocketAddressImpl(const InetAddress &rAddr, int port) 
     {
         m_port = port;
@@ -305,8 +320,8 @@ public:
         std::ostringstream oss;
         if ( !m_ptrAddress ) oss<<"inet4:*:";
         else oss<<m_ptrAddress->ToString();
-        oss<<m_port;
-        oss.str(str);
+        oss<<':'<<m_port;
+        str = oss.str();
     }
 }; // end InetSocketAddress::InetSocketAddressImpl
 
@@ -314,6 +329,10 @@ InetSocketAddress::InetSocketAddress() : m_pImpl(nullptr) {}
 
 InetSocketAddress::InetSocketAddress(const InetAddress &rAddr, int port) 
     : m_pImpl(new InetSocketAddressImpl(rAddr, port) ) 
+{}
+
+InetSocketAddress::InetSocketAddress(const struct sockaddr *paddr, socklen_t addrlen)
+    : m_pImpl(new InetSocketAddressImpl(paddr, addrlen))
 {}
 
 InetSocketAddress::InetSocketAddress(const InetSocketAddress &other) 

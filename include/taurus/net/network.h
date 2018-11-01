@@ -203,6 +203,7 @@ namespace net {
         InetSocketAddressImpl * m_pImpl;
     public:
         InetSocketAddress();
+        InetSocketAddress(const struct sockaddr *paddr, socklen_t addrlen);
         InetSocketAddress(const InetAddress &rAddr, int port);
         InetSocketAddress(const InetSocketAddress &other);
         InetSocketAddress(InetSocketAddress &&other);

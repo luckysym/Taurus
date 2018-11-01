@@ -26,12 +26,17 @@ namespace net {
         std::ostringstream oss;
         int e = errno;
         oss<<str<<" errno: "<<e<<", "<<strerror(e);
-        oss.str(errinfo);
+        errinfo = oss.str();
+    }
+    inline std::string MakeSocketErrorInfo(std::ostringstream &oss) {
+        int e = errno;
+        oss<<" errno: "<<e<<", "<<strerror(e);
+        return oss.str();
     }
     inline void MakeSocketErrorInfo(std::string &errinfo, std::ostringstream &oss) {
         int e = errno;
         oss<<" errno: "<<e<<", "<<strerror(e);
-        oss.str(errinfo);
+        errinfo = oss.str();
     }
 
     /**
@@ -52,10 +57,10 @@ namespace net {
         using Ptr = std::shared_ptr<SocketImpl>;
         
     protected:
-        int                     m_fd;
-        int                     m_state;
-        InetSocketAddress::Ptr  m_ptrLocalAddr;
-        InetSocketAddress::Ptr  m_ptrRemoteAddr;
+        int                             m_fd;
+        int                             m_state;
+        mutable InetSocketAddress::Ptr  m_ptrLocalAddr;
+        mutable InetSocketAddress::Ptr  m_ptrRemoteAddr;
         
     public:
         SocketImpl() : m_fd(INVALID_SOCKET), m_state(SOCK_STATE_CLOSED) {}
@@ -71,10 +76,9 @@ namespace net {
         bool Bind(const InetAddress &address, int port, std::string & errinfo);
         bool Close(std::string & errinfo);
         bool Connect(const InetAddress &address, int port, std::string & errinfo);
-        bool Connect(const InetAddress &address, int port, int timeout, std::string & errinfo);
         bool Create(const Protocol &proto, std::string & errinfo);
-        const InetAddress * GetLocalAddress() const;
-        int  GetLocalPort() const;
+        const InetSocketAddress * GetLocalAddress(std::string &errinfo) const;
+        const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
         bool Listen(int backlog, std::string &errinfo);
         bool ShutdownInput(std::string &errinfo);
         bool ShutdownOutput(std::string &errinfo);
@@ -148,17 +152,91 @@ namespace net {
         return true;
     }
 
+    inline bool SocketImpl::Connect(const InetAddress &address, int port, std::string & errinfo) {
+        InetSocketAddress::Ptr ptrRemoteAddr(new InetSocketAddress(address, port));
+        int r = ::connect(m_fd, ptrRemoteAddr->CAddress(), ptrRemoteAddr->CAddressSize());
+        if ( r == -1) {
+            int e = errno;
+            // 非阻塞连接，修改状态，可以根据状态值判断连接是否完成。
+            if ( e == EINPROGRESS ) m_state = SOCK_STATE_OPENING; 
+            std::ostringstream oss;
+            oss<<"connect() error, fd: "<<m_fd<<", remote"<<ptrRemoteAddr->ToString();
+            MakeSocketErrorInfo(errinfo, oss);
+            return false;
+        }
+
+        // 设置远程地址
+        m_ptrRemoteAddr = ptrRemoteAddr;
+        return true;
+    }
+
+    inline const InetSocketAddress * SocketImpl::GetLocalAddress(std::string &errinfo) const {
+        if ( !m_ptrLocalAddr ) {
+            char addrbuf[32];
+            socklen_t addrlen = 32;
+            int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+            if ( r == -1 ) {
+                std::ostringstream oss;
+                oss<<"getsockname() error, fd: "<<m_fd;
+                MakeSocketErrorInfo(errinfo, oss);
+                return nullptr;
+            }
+            m_ptrLocalAddr = std::make_shared<InetSocketAddress>((sockaddr*)addrbuf, addrlen);
+        }
+        return m_ptrLocalAddr.get();
+    }
+
+    inline const InetSocketAddress * SocketImpl::GetRemoteAddress(std::string &errinfo) const {
+        if ( !m_ptrRemoteAddr ) {
+            char addrbuf[32];
+            socklen_t addrlen = 32;
+            int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+            if ( r == -1 ) {
+                std::ostringstream oss;
+                oss<<"getpeername() error, fd: "<<m_fd;
+                MakeSocketErrorInfo(errinfo, oss);
+                return nullptr;
+            }
+            m_ptrRemoteAddr = std::make_shared<InetSocketAddress>((sockaddr*)addrbuf, addrlen);
+        }
+        return m_ptrRemoteAddr.get();
+    }
+
     inline bool SocketImpl::Listen(int backlog, std::string &errinfo) {
         if ( !m_ptrLocalAddr ) throw std::runtime_error("bind socket before listen");
 
         int r = ::listen(m_fd, backlog);
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"bind() error, "<<m_ptrLocalAddr->ToString();
+            oss<<"bind() error, fd: "<<m_fd<<", addr: "<<m_ptrLocalAddr->ToString();
             MakeSocketErrorInfo(errinfo, oss);
             return false;
         }
         m_state = SOCK_STATE_OPEN;  // server sock listen ok 
+        return true;
+    }
+
+    inline bool SocketImpl::ShutdownInput(std::string &errinfo) {
+        if ( m_fd == INVALID_SOCKET) return true;  // 已经关了
+        int r = ::shutdown(m_fd, SHUT_RD);
+        if ( r == -1 ) {
+            std::ostringstream oss;
+            oss<<"shutdown(RD) error, fd: "<<m_fd<<", ";
+            MakeSocketErrorInfo(errinfo, oss);
+            return false;
+        }
+        return true;
+    }
+
+    inline bool SocketImpl::ShutdownOutput(std::string &errinfo) {
+        if ( m_fd == INVALID_SOCKET) return true;  // 已经关了
+        int r = ::shutdown(m_fd, SHUT_WR);
+        if ( r == -1 ) {
+            std::ostringstream oss;
+            oss<<"shutdown(WR) error, fd: "<<m_fd<<", ";
+            MakeSocketErrorInfo(errinfo, oss);
+            return false;
+        }
         return true;
     }
 }} // end namespace taurus::net
