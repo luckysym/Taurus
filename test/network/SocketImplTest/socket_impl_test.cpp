@@ -37,6 +37,7 @@ public:
     void testServerSocket() {
         this->BindSocket();
         this->ListenSocket();
+        this->GetLocalAddress();
     }
 
 protected:
@@ -65,6 +66,13 @@ protected:
         std::string errinfo;
         CPPUNIT_ASSERT( m_ptrSockImpl->Listen(SOMAXCONN, errinfo));
         CPPUNIT_ASSERT( m_ptrSockImpl->State() == SocketImpl::SOCK_STATE_OPEN );
+    }
+    void GetLocalAddress() {
+        std::string errinfo;
+        const InetSocketAddress * paddr = m_ptrSockImpl->GetLocalAddress(errinfo);
+        CPPUNIT_ASSERT(paddr);
+        CPPUNIT_ASSERT(paddr->GetPort() == 10024);
+        cout<<paddr->ToString()<<endl;
     }
 
 }; // end class SocketImpTest
