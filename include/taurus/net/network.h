@@ -118,7 +118,7 @@ namespace net {
      */
     class Inet4Address : public InetAddress {
     public:
-        using Ptr = std::shared_ptr<Inet4Address>;
+        using Ptr = std::unique_ptr<Inet4Address>;
 
     private:
         uint32_t            m_addr;
@@ -126,7 +126,7 @@ namespace net {
     public:
         Inet4Address();  // 默认构造，初始化为一个ANY地址。
         Inet4Address(uint32_t addr);     // 构造指定的地址。
-        Inet4Address(const char *addrstr);  // 文本地址构造。xxx.xxx.xxx.xxx
+        Inet4Address(const char *addrstr, std::string &errinfo);  // 文本地址构造。xxx.xxx.xxx.xxx
         Inet4Address(const Inet4Address &other);
         virtual ~Inet4Address();
 

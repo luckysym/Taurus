@@ -54,7 +54,7 @@ namespace net {
             SOCK_STATE_OPENING    // 打开中，fd>=0但连接尚未完成，通常用于非阻塞连接INPROGRESS状态。
         };
 
-        using Ptr = std::shared_ptr<SocketImpl>;
+        using Ptr = std::unique_ptr<SocketImpl>;
         
     protected:
         int                             m_fd;
@@ -72,17 +72,17 @@ namespace net {
         SocketImpl & operator=(const SocketImpl& other) = delete;
 
     public:
-        int  Fd() const { return m_fd; }
-        bool Bind(const InetAddress &address, int port, std::string & errinfo);
-        bool Close(std::string & errinfo);
-        bool Connect(const InetAddress &address, int port, std::string & errinfo);
-        bool Create(const Protocol &proto, std::string & errinfo);
+        int   Fd() const { return m_fd; }
+        bool  Bind(const InetAddress &address, int port, std::string & errinfo);
+        bool  Close(std::string & errinfo);
+        bool  Connect(const InetAddress &address, int port, std::string & errinfo);
+        bool  Create(const Protocol &proto, std::string & errinfo);
         const InetSocketAddress * GetLocalAddress(std::string &errinfo) const;
         const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
-        bool Listen(int backlog, std::string &errinfo);
-        bool ShutdownInput(std::string &errinfo);
-        bool ShutdownOutput(std::string &errinfo);
-        int  State() const { return m_state; }
+        bool  Listen(int backlog, std::string &errinfo);
+        bool  ShutdownInput(std::string &errinfo);
+        bool  ShutdownOutput(std::string &errinfo);
+        int   State() const { return m_state; }
         std::string ToString() const;
     }; // end class Socket
 
@@ -160,12 +160,13 @@ namespace net {
             // 非阻塞连接，修改状态，可以根据状态值判断连接是否完成。
             if ( e == EINPROGRESS ) m_state = SOCK_STATE_OPENING; 
             std::ostringstream oss;
-            oss<<"connect() error, fd: "<<m_fd<<", remote"<<ptrRemoteAddr->ToString();
+            oss<<"connect() error, fd: "<<m_fd<<", remote: "<<ptrRemoteAddr->ToString();
             MakeSocketErrorInfo(errinfo, oss);
             return false;
         }
 
         // 设置远程地址
+        this->m_state = SOCK_STATE_OPEN;
         m_ptrRemoteAddr = ptrRemoteAddr;
         return true;
     }
