@@ -155,6 +155,18 @@ Inet4Address::Inet4Address(uint32_t addr)
     : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
     , m_addr(addr) {}
 
+Inet4Address::Inet4Address(const char * pszAddress, std::string &errinfo) 
+    : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
+    , m_addr(0) 
+{
+    int r = inet_pton(AF_INET, pszAddress, &m_addr);
+    if ( r == 0 ) {
+        errinfo = "NOT_A_VALID_INET4_ADDR";
+    } else if ( r == -1 ) {
+        errinfo = "AF_NOT_SUPPORT";
+    }
+}
+
 Inet4Address::Inet4Address(const Inet4Address &other) 
     : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(uint32_t)) 
     , m_addr(other.m_addr) {}
