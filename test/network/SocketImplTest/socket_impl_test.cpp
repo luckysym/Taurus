@@ -1,4 +1,6 @@
 #include "../../../src/net/socket_impl.h"
+#include "../../../src/net/socket_opt_impl.h"
+
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/TestCaller.h>
@@ -66,6 +68,17 @@ protected:
         CPPUNIT_ASSERT( ptrSocket->Fd() > 0 );
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_CREATED );
         cout<<"socket created, fd: "<<ptrSocket->Fd()<<endl;
+
+        // 设置socket reuse addr
+        bool bopt;
+        std::string err;
+        SocketOptReuseAddr optreuseaddr( ptrSocket->Fd() );
+        CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, err) );
+        CPPUNIT_ASSERT( !bopt );
+        CPPUNIT_ASSERT( optreuseaddr.Set(true, err) );
+        CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, err) );
+        CPPUNIT_ASSERT( bopt );
+        cout<<"socket opt reuseaddr: "<<bopt<<endl;
     }
 
     void CloseSocket(SocketImpl::Ptr &ptrSocket) {
@@ -131,6 +144,8 @@ protected:
         CPPUNIT_ASSERT( ptrSocket->ShutdownOutput(errinfo) );
     }
 }; // end class SocketImpTest
+
+
 
 // CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( SocketImpTest, "alltest" );
 CPPUNIT_TEST_SUITE_REGISTRATION( SocketImpTest );
