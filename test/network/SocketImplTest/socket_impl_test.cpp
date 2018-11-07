@@ -22,6 +22,7 @@ class SocketImpTest : public CppUnit::TestFixture {
 
 private:
     SocketImpl::Ptr m_ptrSocketImpl;
+    std::string     m_err;
     
 public:
     SocketImpTest() {
@@ -71,14 +72,33 @@ protected:
 
         // 设置socket reuse addr
         bool bopt;
-        std::string err;
         SocketOptReuseAddr optreuseaddr( ptrSocket->Fd() );
-        CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, err) );
+        CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, m_err) );
         CPPUNIT_ASSERT( !bopt );
-        CPPUNIT_ASSERT( optreuseaddr.Set(true, err) );
-        CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, err) );
+        CPPUNIT_ASSERT( optreuseaddr.Set(true, m_err) );
+        CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, m_err) );
         CPPUNIT_ASSERT( bopt );
         cout<<"socket opt reuseaddr: "<<bopt<<endl;
+    }
+
+    void SetSocketBuffer(SocketImpl::Ptr &ptrSocket) {
+
+        // 获取和设置收发缓存
+        int rcvbuf, sndbuf; 
+        SocketOptRecvBuffer optrcvbuf(ptrSocket->Fd());
+        SocketOptSendBuffer optsndbuf(ptrSocket->Fd());
+        CPPUNIT_ASSERT( optrcvbuf.Get(&rcvbuf, m_err));
+        CPPUNIT_ASSERT( optsndbuf.Get(&sndbuf, m_err));
+        cout<<"default socket rcvbuf: "<<rcvbuf<<endl;
+        cout<<"default socket sndbuf: "<<sndbuf<<endl;
+
+        CPPUNIT_ASSERT( optrcvbuf.Set(4096, m_err));
+        CPPUNIT_ASSERT( optsndbuf.Set(16384 * 2, m_err));
+
+        CPPUNIT_ASSERT( optrcvbuf.Get(&rcvbuf, m_err));
+        CPPUNIT_ASSERT( optsndbuf.Get(&sndbuf, m_err));
+        CPPUNIT_ASSERT( rcvbuf == 4096);
+        CPPUNIT_ASSERT( sndbuf == 16384 * 2);
     }
 
     void CloseSocket(SocketImpl::Ptr &ptrSocket) {
@@ -93,6 +113,7 @@ protected:
         std::string errinfo;
         CPPUNIT_ASSERT( ptrSocket->Bind(Inet4Address(), 10024, errinfo));
     }
+
     void ListenSocket(SocketImpl::Ptr &ptrSocket) {
         std::string errinfo;
         CPPUNIT_ASSERT( ptrSocket->Listen(SOMAXCONN, errinfo));
@@ -108,7 +129,7 @@ protected:
 
     void ConnectSocketInvalid(SocketImpl::Ptr &ptrSocket) {
         std::string errinfo;
-        Inet4Address address("10.10.10.10", errinfo);
+        Inet4Address address("127.0.0.1", errinfo);
         CPPUNIT_ASSERT( errinfo.empty() );
         CPPUNIT_ASSERT(!ptrSocket->Connect(address, 10024, errinfo));
         cout<<"Connect error: "<<errinfo<<endl;
