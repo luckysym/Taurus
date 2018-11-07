@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
@@ -225,20 +226,39 @@ namespace net {
         virtual socklen_t CAddressSize() const ;
     }; // end class InetSocketAddress
 
-    /**
-     * @brief Socket基础类
-     */
+
     class SocketImpl;
+
+    /**
+     * @brief Socket基础类。
+     */ 
+    class SocketBase {
+    private:
+        SocketImpl *m_pImpl;
+        const char *m_pszTypeName;  // Socket类型名称
+
+    protected:
+        SocketBase(const char * pszTypeName);
+
+        SocketBase(const SocketBase & other) = delete;
+        SocketBase& operator = (const SocketBase & other) = delete;
+
+    public:
+        virtual ~SocketBase();
+
+        int  Fd() const;
+        bool Close(std::string &e);
+    }; // class SocketBase
 
     /**
      * @brief 负责服务端监听的Socket
      */
     class ServerSocket {
     public:
-        bool Bind(const InetAddress &rAddr, int port);
-        bool Listen(int backlog);
+        bool  Bind(const InetAddress &rAddr, int port);
+        bool  Listen(int backlog);
         const InetAddress *  GetLocalAddress() const;
-        int  GetLocalPort() const;
+        int   GetLocalPort() const;
     }; // end class ServerSocket
 
     /**

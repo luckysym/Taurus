@@ -2,6 +2,7 @@
 #include <taurus/net/network.h>
 #include <memory>
 #include <cassert>
+#include <stdexcept>
 #include <unistd.h>
 
 #include "socket_utils.h"
@@ -44,7 +45,7 @@ namespace net {
     public:
         int   Fd() const { return m_fd; }
         bool  Bind(const InetAddress &address, int port, std::string & errinfo);
-        bool  Close(std::string & errinfo);
+        bool  Close(std::string &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
         bool  Create(const Protocol &proto, std::string & errinfo);
         const InetSocketAddress * GetLocalAddress(std::string &errinfo) const;
@@ -57,7 +58,7 @@ namespace net {
     }; // end class Socket
 
     inline SocketImpl::SocketImpl(SocketImpl && other) {
-        m_fd = other.m_fd;   
+        m_fd = other.m_fd;
         other.m_fd = INVALID_SOCKET;
         
         m_state = other.m_state; 
@@ -81,12 +82,14 @@ namespace net {
         return *this;
     }
 
-    inline bool SocketImpl::Close(std::string & errinfo) {
+    inline bool SocketImpl::Close(std::string & e) {
         if ( m_fd != INVALID_SOCKET ) {
             m_state = SOCK_STATE_CLOSED;
             int r = ::close(m_fd);
             if ( r == -1 ) {
-                errinfo = MakeSocketErrorInfo("close() error. ");
+                std::ostringstream oss;
+                oss<<"close() socket error, fd: "<<m_fd; 
+                e = MakeSocketErrorInfo(oss);
                 return false;
             }
             m_fd = INVALID_SOCKET;
@@ -209,5 +212,21 @@ namespace net {
             return false;
         }
         return true;
+    }
+
+
+    SocketBase::SocketBase(const char * pszTypeName) 
+        : m_pImpl(new SocketImpl), m_pszTypeName(pszTypeName) {}
+
+    SocketBase::~SocketBase() {
+        delete m_pImpl;
+        m_pImpl = nullptr;
+        m_pszTypeName = nullptr;
+    }
+
+    int SocketBase::Fd() const { return m_pImpl->Fd(); }
+
+    bool SocketBase::Close(std::string &e) { 
+        return m_pImpl->Close(e);
     }
 }} // end namespace taurus::net
