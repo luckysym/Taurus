@@ -229,4 +229,8 @@ namespace net {
     bool SocketBase::Close(std::string &e) { 
         return m_pImpl->Close(e);
     }
+
+    bool SocketBase::Create(const Protocol &proto, std::string &e) {
+        return m_pImpl->Create( proto, e);
+    }
 }} // end namespace taurus::net

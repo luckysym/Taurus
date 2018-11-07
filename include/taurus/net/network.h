@@ -243,6 +243,7 @@ namespace net {
         SocketBase(const SocketBase & other) = delete;
         SocketBase& operator = (const SocketBase & other) = delete;
 
+        bool Create(const Protocol &proto, std::string &e);
     public:
         virtual ~SocketBase();
 
