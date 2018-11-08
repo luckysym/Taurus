@@ -8,6 +8,7 @@ namespace taurus {
 class ErrorInfo {
     int                    m_code;
     std::string            m_message;
+    std::string            m_hint;
     std::list<std::string> m_stack;
 
 public:
@@ -21,8 +22,9 @@ public:
 
     int          Code() const throw() { return m_code; }
     const char * Message() const throw() { return m_message.c_str(); }
+    const char * Hint() const throw() { return m_hint.c_str();}
     
-    void Set(int code, const char *message) throw();
+    void Set(int code, const char *message, const char * hint = nullptr) throw();
     void Push(const char * stackinfo) throw();
     void Merge(ErrorInfo &errinfo) throw();
     void Clear() throw();
@@ -36,17 +38,20 @@ inline ErrorInfo::ErrorInfo() : m_code(0) {}
 inline ErrorInfo::~ErrorInfo() { m_code = 0; }
 
 inline ErrorInfo::ErrorInfo(const ErrorInfo &e) 
-    : m_code(e.m_code), m_message(e.m_message), m_stack(e.m_stack) { }
+    : m_code(e.m_code), m_message(e.m_message)
+    , m_hint(e.m_hint), m_stack(e.m_stack) { }
 
 inline ErrorInfo::ErrorInfo(ErrorInfo && e) 
     : m_code(e.m_code)
     , m_message(std::move(e.m_message))
+    , m_hint(std::move(e.m_hint))
     , m_stack( std::move(e.m_stack ) ) { e.m_code = 0; }
 
 inline ErrorInfo & ErrorInfo::operator=(const ErrorInfo &e) {
     if ( this == &e) return *this;
     m_code = e.m_code;
     m_message = e.m_message;
+    m_hint = e.m_hint;
     m_stack = e.m_stack;
     return *this;
 }
@@ -55,29 +60,39 @@ inline ErrorInfo & ErrorInfo::operator= ( ErrorInfo && e) {
     if ( this == &e) return *this;
     m_code = e.m_code; e.m_code = 0;
     m_message = std::move(e.m_message);
+    m_hint = std::move(e.m_hint);
     m_stack = std::move(e.m_stack);
     return *this;
 }
 
-inline void ErrorInfo::Set(int code, const char *message) throw() {
+inline void ErrorInfo::Set(int code, const char *message, const char * hint) throw() {
     m_code = code;
     m_message.assign(message);
-    m_stack.push_back(m_message);
+    if ( hint ) m_hint.assign(hint);
+    if ( m_hint.empty() ) m_stack.push_back(m_message);
+    else {
+        std::string err;
+        err.reserve(m_hint.length() + m_message.length() + 8);
+        err.append(m_hint).append(": ").append(m_message);
+        m_stack.push_back(err);
+    }
 }
 
-inline void ErrorInfo::Push(const char * message) throw() {
-    m_stack.push_back(message);
+inline void ErrorInfo::Push(const char * errinfo) throw() {
+    m_stack.push_back(errinfo);
 }
 
 inline void ErrorInfo::Merge(ErrorInfo &errinfo) throw() {
     m_code = errinfo.m_code; errinfo.m_code = 0;
     m_message = std::move(errinfo.m_message);
+    m_hint = std::move(errinfo.m_hint);
     m_stack.splice(m_stack.begin(), errinfo.m_stack);
 }
-    
+
 inline void ErrorInfo::Clear() throw() {
     m_code = 0;
     m_message.clear();
+    m_hint.clear();
     m_stack.clear();
 }
 
