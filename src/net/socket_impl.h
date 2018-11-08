@@ -30,11 +30,16 @@ namespace net {
     protected:
         int                             m_fd;
         int                             m_state;
+        int                             m_domain;       // address family, AF_INET/AF_INET4
+        int                             m_socktype;     // socket type, SOCK_STREAM/SOCK_DGRAM 
         mutable InetSocketAddress::Ptr  m_ptrLocalAddr;
         mutable InetSocketAddress::Ptr  m_ptrRemoteAddr;
         
     public:
-        SocketImpl() : m_fd(INVALID_SOCKET), m_state(SOCK_STATE_CLOSED) {}
+        SocketImpl() 
+            : m_fd(INVALID_SOCKET), m_state(SOCK_STATE_CLOSED)
+            , m_domain(0), m_socktype(0) {}
+
         SocketImpl(const SocketImpl &other) = delete; 
         SocketImpl(SocketImpl && other);
         virtual ~SocketImpl() { std::string err; this->Close(err); }
@@ -43,7 +48,10 @@ namespace net {
         SocketImpl & operator=(const SocketImpl& other) = delete;
 
     public:
+        int   Domain() const { return m_domain; }
+        int   SocketType() const { return m_socktype; }
         int   Fd() const { return m_fd; }
+        
         bool  Bind(const InetAddress &address, int port, std::string & errinfo);
         bool  Close(std::string &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
@@ -63,6 +71,9 @@ namespace net {
         
         m_state = other.m_state; 
         other.m_state = SOCK_STATE_CLOSED;
+
+        m_domain = other.m_domain;
+        m_socktype = other.m_socktype;
         
         m_ptrLocalAddr = std::move(other.m_ptrLocalAddr);
         m_ptrRemoteAddr = std::move(other.m_ptrRemoteAddr);
@@ -76,6 +87,9 @@ namespace net {
         
         m_state = other.m_state; 
         other.m_state = SOCK_STATE_CLOSED;
+
+        m_domain = other.m_domain;
+        m_socktype = other.m_socktype;
         
         m_ptrLocalAddr = std::move(other.m_ptrLocalAddr);
         m_ptrRemoteAddr = std::move(other.m_ptrRemoteAddr);
@@ -107,8 +121,11 @@ namespace net {
             MakeSocketErrorInfo(errinfo, "socket() error,");
             return false;
         }
+
         m_fd = fd;
         m_state = SOCK_STATE_CREATED;
+        m_domain = proto.Domain();
+        m_socktype = proto.Type();
         return true;
     }
 
@@ -214,23 +231,4 @@ namespace net {
         return true;
     }
 
-
-    SocketBase::SocketBase(const char * pszTypeName) 
-        : m_pImpl(new SocketImpl), m_pszTypeName(pszTypeName) {}
-
-    SocketBase::~SocketBase() {
-        delete m_pImpl;
-        m_pImpl = nullptr;
-        m_pszTypeName = nullptr;
-    }
-
-    int SocketBase::Fd() const { return m_pImpl->Fd(); }
-
-    bool SocketBase::Close(std::string &e) { 
-        return m_pImpl->Close(e);
-    }
-
-    bool SocketBase::Create(const Protocol &proto, std::string &e) {
-        return m_pImpl->Create( proto, e);
-    }
 }} // end namespace taurus::net
