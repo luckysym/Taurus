@@ -9,19 +9,10 @@
 
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
+#include <netinet/in.h>
 
 namespace taurus  {
 namespace net {
-
-    /**
-     * @brief 网络相关错误类。
-     */
-    class NetworkError {};
-
-    /**
-     * @brief Socket错误类。
-     */
-    class SocketError {};
 
     /**
      * @brief Socket协议对象。
@@ -33,6 +24,8 @@ namespace net {
 	    int m_proto;     ///< socket protocol
 
     public:
+
+        Protocol() : m_domain(-1), m_type(-1), m_proto(-1) {}
         /**
          * @brief Protocol 协议类构造函数
          * @param domain address family
@@ -226,7 +219,6 @@ namespace net {
         virtual socklen_t CAddressSize() const ;
     }; // end class InetSocketAddress
 
-
     class SocketImpl;
 
     /**
@@ -242,24 +234,26 @@ namespace net {
 
         SocketBase(const SocketBase & other) = delete;
         SocketBase& operator = (const SocketBase & other) = delete;
-
-        bool Create(const Protocol &proto, std::string &e);
+        
     public:
         virtual ~SocketBase();
 
-        int  Fd() const;
+        bool Create(const Protocol &proto, std::string &e);
         bool Close(std::string &e);
+        int  Fd() const;
     }; // class SocketBase
 
     /**
      * @brief 负责服务端监听的Socket
      */
-    class ServerSocket {
+    class ServerSocket : public SocketBase {
     public:
-        bool  Bind(const InetAddress &rAddr, int port);
+        ServerSocket();
+        virtual ~ServerSocket();
+        bool  Bind(const char *addr, int port, std::string &errinfo);
         bool  Listen(int backlog);
-        const InetAddress *  GetLocalAddress() const;
-        int   GetLocalPort() const;
+        std::string GetLocalAddress() const;
+        int         GetLocalPort() const;
     }; // end class ServerSocket
 
     /**

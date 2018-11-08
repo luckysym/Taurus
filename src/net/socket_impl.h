@@ -1,5 +1,6 @@
 #pragma once 
 #include <taurus/net/network.h>
+#include <taurus/error_info.h>
 #include <memory>
 #include <cassert>
 #include <stdexcept>
@@ -56,7 +57,7 @@ namespace net {
         bool  Close(std::string &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
         bool  Create(const Protocol &proto, std::string & errinfo);
-        const InetSocketAddress * GetLocalAddress(std::string &errinfo) const;
+        std::string GetLocalAddress(ErrorInfo &error) const;
         const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
         bool  Listen(int backlog, std::string &errinfo);
         bool  ShutdownInput(std::string &errinfo);
@@ -161,20 +162,30 @@ namespace net {
         return true;
     }
 
-    inline const InetSocketAddress * SocketImpl::GetLocalAddress(std::string &errinfo) const {
-        if ( !m_ptrLocalAddr ) {
-            char addrbuf[32];
-            socklen_t addrlen = 32;
-            int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
-            if ( r == -1 ) {
-                std::ostringstream oss;
-                oss<<"getsockname() error, fd: "<<m_fd;
-                MakeSocketErrorInfo(errinfo, oss);
-                return nullptr;
-            }
-            m_ptrLocalAddr = std::make_shared<InetSocketAddress>((sockaddr*)addrbuf, addrlen);
+    inline std::string SocketImpl::GetLocalAddress(ErrorInfo &error) const {
+        char addrbuf[32];
+        socklen_t addrlen = 32;
+        int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+        if ( r == -1 ) {
+            std::ostringstream oss;
+            oss<<"getsockname() error, fd: "<<m_fd;
+            error.Set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
+            return std::string();
         }
-        return m_ptrLocalAddr.get();
+        if ( m_domain == Protocol::DomainInet4) {
+            struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
+            Inet4Address addr(paddr->sin_addr.s_addr);
+            return addr.ToString();
+        } else if ( m_domain == Protocol::DomainInet6) {
+            struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
+            Inet6Address addr(paddr->sin6_addr.s6_addr, 16);
+            return addr.ToString();
+        } else  {
+            std::ostringstream oss;
+            oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
+            error.Set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
+            return std::string();
+        }
     }
 
     inline const InetSocketAddress * SocketImpl::GetRemoteAddress(std::string &errinfo) const {

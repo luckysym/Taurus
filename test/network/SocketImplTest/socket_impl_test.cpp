@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+using namespace taurus;
 using namespace taurus::net;
 using namespace std;
 
@@ -120,11 +121,11 @@ protected:
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_OPEN );
     }
     void GetLocalAddress(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
-        const InetSocketAddress * paddr = ptrSocket->GetLocalAddress(errinfo);
-        CPPUNIT_ASSERT(paddr);
-        CPPUNIT_ASSERT(paddr->GetPort() == 10024);
-        cout<<paddr->ToString()<<endl;
+        ErrorInfo errinfo;
+        string addr = ptrSocket->GetLocalAddress(errinfo);
+        CPPUNIT_ASSERT(errinfo.Code() == 0);
+        CPPUNIT_ASSERT(!addr.empty());
+        cout<<addr<<endl;
     }
 
     void ConnectSocketInvalid(SocketImpl::Ptr &ptrSocket) {
@@ -153,10 +154,11 @@ protected:
     }
 
     void GetClientLocalAddress(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
-        const InetSocketAddress * paddr = ptrSocket->GetLocalAddress(errinfo);
-        CPPUNIT_ASSERT(paddr);
-        cout<<paddr->ToString()<<endl;
+        ErrorInfo errinfo;
+        string addr = ptrSocket->GetLocalAddress(errinfo);
+        CPPUNIT_ASSERT(errinfo.Code() == 0);
+        CPPUNIT_ASSERT(!addr.empty());
+        cout<<addr<<endl;
     }
 
     void ShutdownSocket(SocketImpl::Ptr &ptrSocket) {
