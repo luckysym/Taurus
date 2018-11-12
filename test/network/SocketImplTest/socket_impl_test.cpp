@@ -123,7 +123,7 @@ protected:
     void GetLocalAddress(SocketImpl::Ptr &ptrSocket) {
         ErrorInfo errinfo;
         string addr = ptrSocket->GetLocalAddress(errinfo);
-        CPPUNIT_ASSERT(errinfo.Code() == 0);
+        CPPUNIT_ASSERT(errinfo.code() == 0);
         CPPUNIT_ASSERT(!addr.empty());
         cout<<addr<<endl;
     }
@@ -131,7 +131,7 @@ protected:
     void ConnectSocketInvalid(SocketImpl::Ptr &ptrSocket) {
         ErrorInfo errinfo;
         Inet4Address address("127.0.0.1", errinfo);
-        CPPUNIT_ASSERT( errinfo.Code() == 0 );
+        CPPUNIT_ASSERT( errinfo.code() == 0 );
 
         std::string errstr;
         CPPUNIT_ASSERT(!ptrSocket->Connect(address, 10024, errstr));
@@ -142,7 +142,7 @@ protected:
     void ConnectSocketLocal22(SocketImpl::Ptr &ptrSocket) {
         ErrorInfo errinfo;
         Inet4Address address("127.0.0.1", errinfo);
-        CPPUNIT_ASSERT( errinfo.Code() == 0 );
+        CPPUNIT_ASSERT( errinfo.code() == 0 );
 
         std::string errstr;
         CPPUNIT_ASSERT( ptrSocket->Connect(address, 22, errstr));
@@ -160,7 +160,7 @@ protected:
     void GetClientLocalAddress(SocketImpl::Ptr &ptrSocket) {
         ErrorInfo errinfo;
         string addr = ptrSocket->GetLocalAddress(errinfo);
-        CPPUNIT_ASSERT(errinfo.Code() == 0);
+        CPPUNIT_ASSERT(errinfo.code() == 0);
         CPPUNIT_ASSERT(!addr.empty());
         cout<<addr<<endl;
     }

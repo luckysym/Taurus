@@ -104,7 +104,7 @@ namespace net {
             if ( r == -1 ) {
                 std::ostringstream oss;
                 oss<<"close() socket error, fd: "<<m_fd<<sockerr; 
-                e.Set(-1, oss.str().c_str(), "SocketImpl::Close");
+                e.set(-1, oss.str().c_str(), "SocketImpl::Close");
                 return false;
             }
             m_fd = INVALID_SOCKET;
@@ -121,7 +121,7 @@ namespace net {
         if ( fd == INVALID_SOCKET ) {
             std::ostringstream oss;
             oss<<"socket() error, "<<sockerr<<" protocol: "<<proto.ToString();
-            errinfo.Set(-1, oss.str().c_str(), "SocketImpl::Create");
+            errinfo.set(-1, oss.str().c_str(), "SocketImpl::Create");
             return false;
         }
 
@@ -137,7 +137,7 @@ namespace net {
         if ( !ptrAddr) {
             std::ostringstream oss;
             oss<<"SocketImpl::Bind() failed, fd: "<<m_fd<<". ";
-            errinfo.Push(oss.str().c_str());
+            errinfo.push(oss.str().c_str());
             return false;
         }
 
@@ -146,7 +146,7 @@ namespace net {
         if ( r == -1 ) {
             std::ostringstream oss;
             oss<<"bind() error, fd: "<<m_fd<<". "<<"local address: "<<ptrSockAddr->ToString()<<", "<<sockerr;
-            errinfo.Set(-1, oss.str().c_str(), "SocketImpl::Bind");
+            errinfo.set(-1, oss.str().c_str(), "SocketImpl::Bind");
             return false;
         }
         return true;
@@ -178,7 +178,7 @@ namespace net {
         if ( r == -1 ) {
             std::ostringstream oss;
             oss<<"getsockname() error, fd: "<<m_fd;
-            error.Set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
+            error.set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
             return std::string();
         }
         if ( m_domain == Protocol::DomainInet4) {
@@ -192,7 +192,7 @@ namespace net {
         } else  {
             std::ostringstream oss;
             oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
-            error.Set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
+            error.set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
             return std::string();
         }
     }

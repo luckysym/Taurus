@@ -20,18 +20,18 @@ public:
     ErrorInfo & operator= (const ErrorInfo &e);
     ErrorInfo & operator= (ErrorInfo &&e);
 
-    int          Code() const throw() { return m_code; }
-    const char * Message() const throw() { return m_message.c_str(); }
-    const char * Hint() const throw() { return m_hint.c_str();}
+    int          code() const throw() { return m_code; }
+    const char * message() const throw() { return m_message.c_str(); }
+    const char * hint() const throw() { return m_hint.c_str();}
     
-    void Set(int code, const char *message, const char * hint = nullptr) throw();
-    void Push(const char * stackinfo) throw();
-    void Merge(ErrorInfo &errinfo) throw();
-    void Clear() throw();
+    void set(int code, const char *message, const char * hint = nullptr) throw();
+    void push(const char * stackinfo) throw();
+    void merge(ErrorInfo &errinfo) throw();
+    void clear() throw();
 
-    std::string ToString() const throw();
+    std::string toString() const throw();
     template <class OutStream>
-    void PrintStack(OutStream & os);
+    void printStack(OutStream & os);
 }; // end class ErrorInfo
 
 inline ErrorInfo::ErrorInfo() : m_code(0) {}
@@ -65,7 +65,7 @@ inline ErrorInfo & ErrorInfo::operator= ( ErrorInfo && e) {
     return *this;
 }
 
-inline void ErrorInfo::Set(int code, const char *message, const char * hint) throw() {
+inline void ErrorInfo::set(int code, const char *message, const char * hint) throw() {
     m_code = code;
     m_message.assign(message);
     if ( hint ) m_hint.assign(hint);
@@ -78,25 +78,25 @@ inline void ErrorInfo::Set(int code, const char *message, const char * hint) thr
     }
 }
 
-inline void ErrorInfo::Push(const char * errinfo) throw() {
+inline void ErrorInfo::push(const char * errinfo) throw() {
     m_stack.push_back(errinfo);
 }
 
-inline void ErrorInfo::Merge(ErrorInfo &errinfo) throw() {
+inline void ErrorInfo::merge(ErrorInfo &errinfo) throw() {
     m_code = errinfo.m_code; errinfo.m_code = 0;
     m_message = std::move(errinfo.m_message);
     m_hint = std::move(errinfo.m_hint);
     m_stack.splice(m_stack.begin(), errinfo.m_stack);
 }
 
-inline void ErrorInfo::Clear() throw() {
+inline void ErrorInfo::clear() throw() {
     m_code = 0;
     m_message.clear();
     m_hint.clear();
     m_stack.clear();
 }
 
-inline std::string ErrorInfo::ToString() const throw() {
+inline std::string ErrorInfo::toString() const throw() {
     std::ostringstream oss;
     oss<<"error code: "<<m_code<<", message: "<<m_message<<std::endl;
     oss<<"stack: "<<std::endl;
@@ -108,7 +108,7 @@ inline std::string ErrorInfo::ToString() const throw() {
 }
 
 template <class OutStream>
-inline void ErrorInfo::PrintStack(OutStream & os) {
+inline void ErrorInfo::printStack(OutStream & os) {
     os<<"error code: "<<m_code<<", message: "<<m_message<<std::endl;
     os<<"stack: "<<std::endl;
     auto it = m_stack.begin();
@@ -116,7 +116,5 @@ inline void ErrorInfo::PrintStack(OutStream & os) {
         os<<"  > "<<*it<<std::endl;
     }
 }
-
-
 
 } // end namespace taurus

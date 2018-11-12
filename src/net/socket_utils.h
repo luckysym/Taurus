@@ -59,7 +59,7 @@ namespace net {
         } else {
             std::ostringstream oss;
             oss<<"Unknown inet address: "<<domain<<", "<<host;
-            e.Set(-1, oss.str().c_str(), "NewInetAddress");
+            e.set(-1, oss.str().c_str(), "NewInetAddress");
             return nullptr;
         }
         

@@ -164,7 +164,7 @@ Inet4Address::Inet4Address(const char * pszAddress, ErrorInfo &errinfo)
         std::string str;
         str.reserve(128);
         str.assign("NOT_A_VALID_INET4_ADDR").append(": ").append(pszAddress);
-        errinfo.Set(-1, str.c_str(), "Inet4Address::Inet4Address" );
+        errinfo.set(-1, str.c_str(), "Inet4Address::Inet4Address" );
     } else if ( r == -1 ) {
         assert(false); // r==-1表示af not support, 这不应该出现。
     }
@@ -212,7 +212,7 @@ Inet6Address::Inet6Address(const char *pszAddress, ErrorInfo &errinfo)
         std::string str;
         str.reserve(128);
         str.assign("NOT_A_VALID_INET6_ADDR").append(": ").append(pszAddress);
-        errinfo.Set(-1, str.c_str(), "Inet6Address::Inet6Address" );
+        errinfo.set(-1, str.c_str(), "Inet6Address::Inet6Address" );
     } else if ( r == -1 ) {
         assert(false); // r==-1表示af not support, 这不应该出现。
     }
