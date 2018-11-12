@@ -59,7 +59,7 @@ namespace net {
         bool  Create(const Protocol &proto, ErrorInfo & errinfo);
         std::string GetLocalAddress(ErrorInfo &error) const;
         const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
-        bool  Listen(int backlog, std::string &errinfo);
+        bool  Listen(int backlog, ErrorInfo &errinfo);
         bool  ShutdownInput(std::string &errinfo);
         bool  ShutdownOutput(std::string &errinfo);
         int   State() const { return m_state; }
@@ -213,14 +213,12 @@ namespace net {
         return m_ptrRemoteAddr.get();
     }
 
-    inline bool SocketImpl::Listen(int backlog, std::string &errinfo) {
-        if ( !m_ptrLocalAddr ) throw std::runtime_error("bind socket before listen");
-
+    inline bool SocketImpl::Listen(int backlog, ErrorInfo &errinfo) {
         int r = ::listen(m_fd, backlog);
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"bind() error, fd: "<<m_fd<<", addr: "<<m_ptrLocalAddr->ToString();
-            MakeSocketErrorInfo(errinfo, oss);
+            oss<<"bind() error, fd: "<<m_fd<<", addr: "<<m_ptrLocalAddr->ToString()<<", "<<sockerr;
+            errinfo.set(-1, oss.str().c_str(), "SocketImpl::Listen");
             return false;
         }
         m_state = SOCK_STATE_OPEN;  // server sock listen ok 

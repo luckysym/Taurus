@@ -32,6 +32,9 @@ bool ServerSocket::Bind(const char * host, int port, ErrorInfo & errinfo) {
     return GetImpl().Bind(host, port, errinfo);
 }
 
+bool ServerSocket::listen(int backlog, ErrorInfo &errinfo) {
+    return GetImpl().Listen(backlog, errinfo);
+}
 
 } // end namespace net
 } // end namespace taurus

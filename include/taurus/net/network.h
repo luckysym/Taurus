@@ -255,7 +255,7 @@ namespace net {
         ServerSocket();
         virtual ~ServerSocket();
         bool  Bind(const char *addr, int port, ErrorInfo &errinfo);
-        bool  Listen(int backlog);
+        bool  listen(int backlog, ErrorInfo &errinfo);
         std::string GetLocalAddress() const;
         int         GetLocalPort() const;
     }; // end class ServerSocket
