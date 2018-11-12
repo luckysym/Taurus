@@ -13,6 +13,16 @@ namespace taurus{
 namespace net {
 
     /**
+     * @brief 将Socket错误信息输出到传入的输出流。
+     * @param oss       输出流，Socket错误消息将被输出此流对象中。
+     */
+    inline std::ostringstream & sockerr(std::ostringstream &oss) {
+        int e = errno;
+        oss<<" errno: "<<e<<", errmsg: "<<strerror(e)<<". ";
+        return oss;
+    }
+
+    /**
      * @brief 生成Socket系统错误消息。
      * @param str  错误消息的前缀。
      */ 

@@ -23,4 +23,18 @@ namespace net {
     const int Protocol::TypeStream  = SOCK_STREAM;
     const int Protocol::TypeDatagram = SOCK_DGRAM;
 
+    std::string Protocol::ToString() const {
+        std::ostringstream oss;
+        if ( m_domain == AF_INET ) oss<<"inet:";
+        else if ( m_domain == AF_INET6 ) oss<<"inet6:";
+        else if ( m_domain == AF_UNIX ) oss<<"unix:";
+        else oss<<"unknown("<<m_domain<<"):";
+
+        if ( m_type == SOCK_STREAM ) oss<<"stream:";
+        else if ( m_type == SOCK_DGRAM) oss<<"datagram:";
+        else oss<<"unknown("<<m_type<<"):";
+
+        oss<<m_proto;
+        return oss.str();
+    }
 }} // end namespace taurus::net

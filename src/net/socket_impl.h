@@ -56,7 +56,7 @@ namespace net {
         bool  Bind(const InetAddress &address, int port, std::string & errinfo);
         bool  Close(std::string &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
-        bool  Create(const Protocol &proto, std::string & errinfo);
+        bool  Create(const Protocol &proto, ErrorInfo & errinfo);
         std::string GetLocalAddress(ErrorInfo &error) const;
         const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
         bool  Listen(int backlog, std::string &errinfo);
@@ -112,14 +112,16 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::Create(const Protocol &proto, std::string & errinfo) {
+    inline bool SocketImpl::Create(const Protocol &proto, ErrorInfo & errinfo) {
         // 是否已经创建判断，避免重复创建。
         if ( m_fd != INVALID_SOCKET ) throw std::runtime_error("socket already created, cannot create again");
 
         // 创建socket
         int fd = ::socket(proto.Domain(), proto.Type(), proto.Proto());
         if ( fd == INVALID_SOCKET ) {
-            MakeSocketErrorInfo(errinfo, "socket() error,");
+            std::ostringstream oss;
+            oss<<"socket() error, "<<sockerr<<" protocol: "<<proto.ToString();
+            errinfo.Set(-1, oss.str().c_str(), "SocketImpl::Create");
             return false;
         }
 

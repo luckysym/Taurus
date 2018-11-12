@@ -17,6 +17,7 @@ add_library( ${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/sys/system_error.cpp
     ${PROJECT_SOURCE_DIR}/src/net/protocol.cpp
     ${PROJECT_SOURCE_DIR}/src/net/inet_address.cpp
+    ${PROJECT_SOURCE_DIR}/src/net/socket_base.cpp
 )
 
 # 设置项目根目录

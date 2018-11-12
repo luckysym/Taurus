@@ -1,4 +1,5 @@
 #pragma once 
+#include <taurus/error_info.h>
 
 #include <cstdint>
 #include <string>
@@ -41,6 +42,7 @@ namespace net {
         int Type() const { return m_type; }      ///< 获取并返回socket type
         int Proto() const { return m_proto; }     ///< 获取并返回socket protocol value
 
+        std::string ToString() const;
     public:
         static const Protocol  Tcp4;   ///< Tcp v4协议类
         static const Protocol  Udp4;   ///< Upd v4协议类
@@ -238,7 +240,7 @@ namespace net {
     public:
         virtual ~SocketBase();
 
-        bool Create(const Protocol &proto, std::string &e);
+        bool Create(const Protocol &proto, ErrorInfo &errinfo);
         bool Close(std::string &e);
         int  Fd() const;
     }; // class SocketBase

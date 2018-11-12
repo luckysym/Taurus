@@ -65,7 +65,7 @@ protected:
         printf("Server Socket Ptr: %p\n", ptrSocket.get());
         CPPUNIT_ASSERT( ptrSocket != nullptr );
 
-        std::string errinfo;
+        ErrorInfo errinfo;
         CPPUNIT_ASSERT( ptrSocket->Create(Protocol::Tcp4, errinfo) );
         CPPUNIT_ASSERT( ptrSocket->Fd() > 0 );
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_CREATED );
