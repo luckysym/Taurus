@@ -155,15 +155,18 @@ Inet4Address::Inet4Address(uint32_t addr)
     : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
     , m_addr(addr) {}
 
-Inet4Address::Inet4Address(const char * pszAddress, std::string &errinfo) 
+Inet4Address::Inet4Address(const char * pszAddress, ErrorInfo &errinfo) 
     : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
     , m_addr(0) 
 {
     int r = inet_pton(AF_INET, pszAddress, &m_addr);
     if ( r == 0 ) {
-        errinfo = "NOT_A_VALID_INET4_ADDR";
+        std::string str;
+        str.reserve(128);
+        str.assign("NOT_A_VALID_INET4_ADDR").append(": ").append(pszAddress);
+        errinfo.Set(-1, str.c_str(), "Inet4Address::Inet4Address" );
     } else if ( r == -1 ) {
-        errinfo = "AF_NOT_SUPPORT";
+        assert(false); // r==-1表示af not support, 这不应该出现。
     }
 }
 
@@ -200,6 +203,19 @@ Inet6Address::Inet6Address(const unsigned char addr[16], size_t n)
     struct in6_addr * p1 = (struct in6_addr *)addr;
     struct in6_addr * p0 = (struct in6_addr *)m_addr;
     *p0 = *p1;
+}
+
+Inet6Address::Inet6Address(const char *pszAddress, ErrorInfo &errinfo) 
+    : InetAddress(Protocol::DomainInet6, m_addr, sizeof(m_addr)) {
+    int r = inet_pton(AF_INET6, pszAddress, &m_addr);
+    if ( r == 0 ) {
+        std::string str;
+        str.reserve(128);
+        str.assign("NOT_A_VALID_INET6_ADDR").append(": ").append(pszAddress);
+        errinfo.Set(-1, str.c_str(), "Inet6Address::Inet6Address" );
+    } else if ( r == -1 ) {
+        assert(false); // r==-1表示af not support, 这不应该出现。
+    }
 }
 
 Inet6Address::Inet6Address(const taurus::net::Inet6Address & other )

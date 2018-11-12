@@ -43,7 +43,7 @@ namespace net {
 
         SocketImpl(const SocketImpl &other) = delete; 
         SocketImpl(SocketImpl && other);
-        virtual ~SocketImpl() { std::string err; this->Close(err); }
+        virtual ~SocketImpl() { ErrorInfo err; this->Close(err); }
 
         SocketImpl & operator=(SocketImpl &&other) ;
         SocketImpl & operator=(const SocketImpl& other) = delete;
@@ -53,8 +53,8 @@ namespace net {
         int   SocketType() const { return m_socktype; }
         int   Fd() const { return m_fd; }
         
-        bool  Bind(const InetAddress &address, int port, std::string & errinfo);
-        bool  Close(std::string &e);
+        bool  Bind(const char *host, int port, ErrorInfo & errinfo);
+        bool  Close(ErrorInfo &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
         bool  Create(const Protocol &proto, ErrorInfo & errinfo);
         std::string GetLocalAddress(ErrorInfo &error) const;
@@ -97,14 +97,14 @@ namespace net {
         return *this;
     }
 
-    inline bool SocketImpl::Close(std::string & e) {
+    inline bool SocketImpl::Close(ErrorInfo & e) {
         if ( m_fd != INVALID_SOCKET ) {
             m_state = SOCK_STATE_CLOSED;
             int r = ::close(m_fd);
             if ( r == -1 ) {
                 std::ostringstream oss;
-                oss<<"close() socket error, fd: "<<m_fd; 
-                e = MakeSocketErrorInfo(oss);
+                oss<<"close() socket error, fd: "<<m_fd<<sockerr; 
+                e.Set(-1, oss.str().c_str(), "SocketImpl::Close");
                 return false;
             }
             m_fd = INVALID_SOCKET;
@@ -132,16 +132,23 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::Bind(const InetAddress & address, int port, std::string &errinfo) {
-        InetSocketAddress::Ptr ptrSockAddr( new InetSocketAddress(address, port) );
+    inline bool SocketImpl::Bind(const char *host, int port, ErrorInfo &errinfo) {
+        InetAddress::Ptr ptrAddr( NewInetAddress(m_domain, host, errinfo) );
+        if ( !ptrAddr) {
+            std::ostringstream oss;
+            oss<<"SocketImpl::Bind() failed, fd: "<<m_fd<<". ";
+            errinfo.Push(oss.str().c_str());
+            return false;
+        }
+
+        InetSocketAddress::Ptr ptrSockAddr( new InetSocketAddress(*ptrAddr, port) );
         int r = ::bind(m_fd, ptrSockAddr->CAddress(), ptrSockAddr->CAddressSize());
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"bind() error, "<<ptrSockAddr->ToString();
-            MakeSocketErrorInfo(errinfo, oss);
+            oss<<"bind() error, fd: "<<m_fd<<". "<<"local address: "<<ptrSockAddr->ToString()<<", "<<sockerr;
+            errinfo.Set(-1, oss.str().c_str(), "SocketImpl::Bind");
             return false;
         }
-        m_ptrLocalAddr = ptrSockAddr;
         return true;
     }
 

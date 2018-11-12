@@ -103,7 +103,7 @@ protected:
     }
 
     void CloseSocket(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
+        ErrorInfo errinfo;
         cout<<"Socket Closed: "<<ptrSocket->Fd()<<endl;
         CPPUNIT_ASSERT( ptrSocket->Close(errinfo));
         CPPUNIT_ASSERT( ptrSocket->Fd() == INVALID_SOCKET );
@@ -111,8 +111,8 @@ protected:
     }
 
     void BindSocket (SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
-        CPPUNIT_ASSERT( ptrSocket->Bind(Inet4Address(), 10024, errinfo));
+        ErrorInfo errinfo;
+        CPPUNIT_ASSERT( ptrSocket->Bind("0.0.0.0", 10024, errinfo));
     }
 
     void ListenSocket(SocketImpl::Ptr &ptrSocket) {
@@ -129,19 +129,23 @@ protected:
     }
 
     void ConnectSocketInvalid(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
+        ErrorInfo errinfo;
         Inet4Address address("127.0.0.1", errinfo);
-        CPPUNIT_ASSERT( errinfo.empty() );
-        CPPUNIT_ASSERT(!ptrSocket->Connect(address, 10024, errinfo));
-        cout<<"Connect error: "<<errinfo<<endl;
+        CPPUNIT_ASSERT( errinfo.Code() == 0 );
+
+        std::string errstr;
+        CPPUNIT_ASSERT(!ptrSocket->Connect(address, 10024, errstr));
+        cout<<"Connect error: "<<errstr<<endl;
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_CREATED);
     }
 
     void ConnectSocketLocal22(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
+        ErrorInfo errinfo;
         Inet4Address address("127.0.0.1", errinfo);
-        CPPUNIT_ASSERT( errinfo.empty() );
-        CPPUNIT_ASSERT( ptrSocket->Connect(address, 22, errinfo));
+        CPPUNIT_ASSERT( errinfo.Code() == 0 );
+
+        std::string errstr;
+        CPPUNIT_ASSERT( ptrSocket->Connect(address, 22, errstr));
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_OPEN);
     }
 

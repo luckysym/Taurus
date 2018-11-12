@@ -122,7 +122,7 @@ namespace net {
     public:
         Inet4Address();  // 默认构造，初始化为一个ANY地址。
         Inet4Address(uint32_t addr);     // 构造指定的地址。
-        Inet4Address(const char *addrstr, std::string &errinfo);  // 文本地址构造。xxx.xxx.xxx.xxx
+        Inet4Address(const char *addrstr, ErrorInfo &errinfo);  // 文本地址构造。xxx.xxx.xxx.xxx
         Inet4Address(const Inet4Address &other);
         virtual ~Inet4Address();
 
@@ -151,7 +151,7 @@ namespace net {
     public:
         Inet6Address();  // 默认构造，初始化为一个ANY地址。
         Inet6Address(const unsigned char addr[16], size_t n);     // 构造指定的地址。 n=16
-        Inet6Address(const char *addrstr);  // 文本地址构造, xxxx:xxxx:xxxx...。
+        Inet6Address(const char *pszAddress, ErrorInfo & errinfo);  // 文本地址构造, xxxx:xxxx:xxxx...。
         Inet6Address(const Inet6Address &other);
         virtual ~Inet6Address();
 
@@ -237,11 +237,13 @@ namespace net {
         SocketBase(const SocketBase & other) = delete;
         SocketBase& operator = (const SocketBase & other) = delete;
         
+        SocketImpl & GetImpl() { return *m_pImpl; }
+        const SocketImpl & GetImpl() const { return *m_pImpl; }
     public:
         virtual ~SocketBase();
 
         bool Create(const Protocol &proto, ErrorInfo &errinfo);
-        bool Close(std::string &e);
+        bool Close(ErrorInfo &e);
         int  Fd() const;
     }; // class SocketBase
 
@@ -252,7 +254,7 @@ namespace net {
     public:
         ServerSocket();
         virtual ~ServerSocket();
-        bool  Bind(const char *addr, int port, std::string &errinfo);
+        bool  Bind(const char *addr, int port, ErrorInfo &errinfo);
         bool  Listen(int backlog);
         std::string GetLocalAddress() const;
         int         GetLocalPort() const;

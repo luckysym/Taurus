@@ -1,5 +1,7 @@
 #pragma once 
 
+#include <taurus/net/network.h>
+
 #include <sstream>
 #include <string>
 #include <errno.h>
@@ -47,6 +49,20 @@ namespace net {
         int e = errno;
         oss<<" errno: "<<e<<", "<<strerror(e);
         errinfo = oss.str();
+    }
+
+    inline InetAddress * NewInetAddress(int domain, const char * host, ErrorInfo & e) {
+        if ( domain == Protocol::DomainInet4 ) { 
+            return new Inet4Address(host, e);
+        } else if ( domain == Protocol::DomainInet6 ) {
+            return new Inet6Address(host, e);
+        } else {
+            std::ostringstream oss;
+            oss<<"Unknown inet address: "<<domain<<", "<<host;
+            e.Set(-1, oss.str().c_str(), "NewInetAddress");
+            return nullptr;
+        }
+        
     }
 
 } // end namespace net

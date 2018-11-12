@@ -17,8 +17,8 @@ SocketBase::~SocketBase() {
 
 int SocketBase::Fd() const { return m_pImpl->Fd(); }
 
-bool SocketBase::Close(std::string &e) { 
-    return m_pImpl->Close(e);
+bool SocketBase::Close(ErrorInfo &errinfo) { 
+    return m_pImpl->Close(errinfo);
 }
 
 bool SocketBase::Create(const Protocol &proto, ErrorInfo & errinfo) {
@@ -27,6 +27,11 @@ bool SocketBase::Create(const Protocol &proto, ErrorInfo & errinfo) {
 
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}
+
+bool ServerSocket::Bind(const char * host, int port, ErrorInfo & errinfo) {
+    return GetImpl().Bind(host, port, errinfo);
+}
+
 
 } // end namespace net
 } // end namespace taurus
