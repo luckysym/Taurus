@@ -33,9 +33,7 @@ namespace net {
         int                             m_state;
         int                             m_domain;       // address family, AF_INET/AF_INET4
         int                             m_socktype;     // socket type, SOCK_STREAM/SOCK_DGRAM 
-        mutable InetSocketAddress::Ptr  m_ptrLocalAddr;
-        mutable InetSocketAddress::Ptr  m_ptrRemoteAddr;
-        
+
     public:
         SocketImpl() 
             : m_fd(INVALID_SOCKET), m_state(SOCK_STATE_CLOSED)
@@ -58,7 +56,7 @@ namespace net {
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
         bool  Create(const Protocol &proto, RuntimeError & errinfo);
         std::string GetLocalAddress(RuntimeError &error) const;
-        const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
+        std::string GetRemoteAddress(RuntimeError &errinfo) const;
         int   GetLocalPort(RuntimeError& e) const;
         int   GetRemotePort(RuntimeError &e) const;
         bool  Listen(int backlog, RuntimeError &errinfo);
@@ -77,9 +75,6 @@ namespace net {
 
         m_domain = other.m_domain;
         m_socktype = other.m_socktype;
-        
-        m_ptrLocalAddr = std::move(other.m_ptrLocalAddr);
-        m_ptrRemoteAddr = std::move(other.m_ptrRemoteAddr);
     }
 
     inline SocketImpl & SocketImpl::operator=(SocketImpl &&other) {
@@ -93,9 +88,6 @@ namespace net {
 
         m_domain = other.m_domain;
         m_socktype = other.m_socktype;
-        
-        m_ptrLocalAddr = std::move(other.m_ptrLocalAddr);
-        m_ptrRemoteAddr = std::move(other.m_ptrRemoteAddr);
         return *this;
     }
 
@@ -166,10 +158,7 @@ namespace net {
             MakeSocketRuntimeError(errinfo, oss);
             return false;
         }
-
-        // 设置远程地址
         this->m_state = SOCK_STATE_OPEN;
-        m_ptrRemoteAddr = ptrRemoteAddr;
         return true;
     }
 
@@ -247,28 +236,39 @@ namespace net {
         }
     }
 
-    inline const InetSocketAddress * SocketImpl::GetRemoteAddress(std::string &errinfo) const {
-        if ( !m_ptrRemoteAddr ) {
-            char addrbuf[32];
-            socklen_t addrlen = 32;
-            int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
-            if ( r == -1 ) {
-                std::ostringstream oss;
-                oss<<"getpeername() error, fd: "<<m_fd;
-                MakeSocketRuntimeError(errinfo, oss);
-                return nullptr;
-            }
-            m_ptrRemoteAddr = std::make_shared<InetSocketAddress>((sockaddr*)addrbuf, addrlen);
-        }
-        return m_ptrRemoteAddr.get();
-    }
-
-    inline bool SocketImpl::Listen(int backlog, RuntimeError &errinfo) {
-        int r = ::listen(m_fd, backlog);
+    inline std::string SocketImpl::GetRemoteAddress(RuntimeError &e) const {
+        char addrbuf[32];
+        socklen_t addrlen = 32;
+        int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"bind() error, fd: "<<m_fd<<", addr: "<<m_ptrLocalAddr->ToString()<<", "<<sockerr;
-            errinfo.set(-1, oss.str().c_str(), "SocketImpl::Listen");
+            oss<<"getsockname() error, fd: "<<m_fd;
+            e.set(-1, MakeSocketRuntimeError(oss).c_str(), "SocketImpl::GetRemoteAddress");
+            return std::string();
+        }
+        if ( m_domain == Protocol::DomainInet4) {
+            struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
+            Inet4Address addr(paddr->sin_addr.s_addr);
+            return addr.ToString();
+        } else if ( m_domain == Protocol::DomainInet6) {
+            struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
+            Inet6Address addr(paddr->sin6_addr.s6_addr, 16);
+            return addr.ToString();
+        } else  {
+            std::ostringstream oss;
+            oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
+            e.set(-1, oss.str().c_str(), "SocketImpl::GetRemoteAddress");
+            return std::string();
+        }
+    }
+
+    inline bool SocketImpl::Listen(int backlog, RuntimeError &e) {
+        int r = ::listen(m_fd, backlog);
+        if ( r == -1 ) {
+            RuntimeError e2;
+            std::ostringstream oss;
+            oss<<"bind() error, fd: "<<m_fd<<", addr: "<<this->GetLocalAddress(e2)<<", "<<sockerr;
+            e.set(-1, oss.str().c_str(), "SocketImpl::Listen");
             return false;
         }
         m_state = SOCK_STATE_OPEN;  // server sock listen ok 

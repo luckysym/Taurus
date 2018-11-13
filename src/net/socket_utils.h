@@ -62,7 +62,6 @@ namespace net {
             e.set(-1, oss.str().c_str(), "NewInetAddress");
             return nullptr;
         }
-        
     }
 
 } // end namespace net
