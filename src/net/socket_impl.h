@@ -51,6 +51,7 @@ namespace net {
         int   SocketType() const { return m_socktype; }
         int   Fd() const { return m_fd; }
         
+        bool  accept(SocketImpl &rSock, RuntimeError &e);
         bool  Bind(const char *host, int port, RuntimeError & errinfo);
         bool  Close(RuntimeError &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
@@ -59,6 +60,8 @@ namespace net {
         std::string GetRemoteAddress(RuntimeError &errinfo) const;
         int   GetLocalPort(RuntimeError& e) const;
         int   GetRemotePort(RuntimeError &e) const;
+        std::string GetLocalEndpoint(RuntimeError &e) const;
+
         bool  Listen(int backlog, RuntimeError &errinfo);
         bool  ShutdownInput(std::string &errinfo);
         bool  ShutdownOutput(std::string &errinfo);
@@ -89,6 +92,26 @@ namespace net {
         m_domain = other.m_domain;
         m_socktype = other.m_socktype;
         return *this;
+    }
+
+    inline bool SocketImpl::accept(SocketImpl &rSock, RuntimeError &e) {
+        char      addrbuf[64];
+        socklen_t addrlen = 64;
+        int nfd = ::accept(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+        if ( nfd >= 0 ) {
+            rSock.m_domain   = this->m_domain;
+            rSock.m_socktype = this->m_socktype;
+            rSock.m_state    = SOCK_STATE_OPEN;
+            rSock.m_fd       = nfd;
+            return true;
+        }
+
+        // ERROR_HANDLE;
+        RuntimeError e2;
+        std::ostringstream oss;
+        oss<<"accept() error, "<<sockerr<<" fd: "<<m_fd<<", local: "<<this->GetLocalEndpoint(e2);
+        e.set(-1, oss.str().c_str(), "SocketImpl::accept");
+        return false;
     }
 
     inline bool SocketImpl::Close(RuntimeError & e) {
@@ -160,6 +183,22 @@ namespace net {
         }
         this->m_state = SOCK_STATE_OPEN;
         return true;
+    }
+
+    inline std::string SocketImpl::GetLocalEndpoint(RuntimeError &error ) const {
+        char addrbuf[32];
+        socklen_t addrlen = 32;
+        int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+        if ( r == 0 ) {
+            InetSocketAddress addr((const struct sockaddr*)addrbuf, addrlen);
+            return addr.ToString();
+        }
+
+        // ERROR HANDLE
+        std::ostringstream oss;
+        oss<<"getsockname() error, "<<sockerr<<" fd:"<<m_fd;
+        error.set(-1, oss.str().c_str(), "SocketImpl::GetLocalEndpoint");
+        return std::string();
     }
 
     inline std::string SocketImpl::GetLocalAddress(RuntimeError &error) const {

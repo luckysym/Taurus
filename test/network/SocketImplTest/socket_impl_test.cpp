@@ -150,11 +150,13 @@ protected:
     }
 
     void GetRemoteAddress22(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
-        const InetSocketAddress * paddr = ptrSocket->GetRemoteAddress(errinfo);
-        CPPUNIT_ASSERT(paddr);
-        CPPUNIT_ASSERT(paddr->GetPort() == 22);
-        cout<<paddr->ToString()<<endl;
+        RuntimeError e1;
+        std::string addr = ptrSocket->GetRemoteAddress(e1);
+        CPPUNIT_ASSERT(!addr.empty());
+
+        RuntimeError e2;
+        int port = ptrSocket->GetRemotePort(e2);
+        CPPUNIT_ASSERT(port == 22);
     }
 
     void GetClientLocalAddress(SocketImpl::Ptr &ptrSocket) {

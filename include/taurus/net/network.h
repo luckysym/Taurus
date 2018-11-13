@@ -15,6 +15,11 @@
 namespace taurus  {
 namespace net {
 
+    class Protocol;
+    class SocketBase;
+    class ServerSocket;
+    class StreamSocket;
+
     /**
      * @brief Socket协议对象。
      */
@@ -227,6 +232,8 @@ namespace net {
      * @brief Socket基础类。
      */ 
     class SocketBase {
+    public:
+        using Ptr = std::unique_ptr<SocketBase>; 
     private:
         SocketImpl *m_pImpl;
         const char *m_pszTypeName;  // Socket类型名称
@@ -237,14 +244,16 @@ namespace net {
         SocketBase(const SocketBase & other) = delete;
         SocketBase& operator = (const SocketBase & other) = delete;
         
-        SocketImpl & GetImpl() { return *m_pImpl; }
-        const SocketImpl & GetImpl() const { return *m_pImpl; }
+    public:
+        SocketImpl & getImpl() { return *m_pImpl; }
+        const SocketImpl & getImpl() const { return *m_pImpl; }
+        
     public:
         virtual ~SocketBase();
 
-        int  Fd() const;
-        bool Create(const Protocol &proto, RuntimeError &errinfo);
-        bool Close(RuntimeError &e);
+        int  fd() const;
+        bool create(const Protocol &proto, RuntimeError &errinfo);
+        bool close(RuntimeError &e);
 
         std::string getLocalAddress(RuntimeError & e) const;
         std::string getLocalAddress() const;
@@ -260,14 +269,18 @@ namespace net {
     public:
         ServerSocket();
         virtual ~ServerSocket();
-        bool  Bind(const char *addr, int port, RuntimeError &errinfo);
+        StreamSocket * accept(RuntimeError &e);
+        bool  accept(StreamSocket &sock, RuntimeError &e);
+        bool  bind(const char *addr, int port, RuntimeError &errinfo);
         bool  listen(int backlog, RuntimeError &errinfo);
     }; // end class ServerSocket
 
     /**
      * @brief StreamSocket类，面向数据流的Socket.
      */
-    class StreamSocket  {
+    class StreamSocket : public SocketBase  {
+    public:
+        StreamSocket() ;
     }; // end class StreamSocket
 
     /**
