@@ -242,9 +242,15 @@ namespace net {
     public:
         virtual ~SocketBase();
 
+        int  Fd() const;
         bool Create(const Protocol &proto, ErrorInfo &errinfo);
         bool Close(ErrorInfo &e);
-        int  Fd() const;
+
+        std::string getLocalAddress(ErrorInfo & e) const;
+        std::string getLocalAddress() const;
+        int         getLocalPort(ErrorInfo & e) const;
+        int         getLocalPort() const;
+
     }; // class SocketBase
 
     /**
@@ -256,8 +262,6 @@ namespace net {
         virtual ~ServerSocket();
         bool  Bind(const char *addr, int port, ErrorInfo &errinfo);
         bool  listen(int backlog, ErrorInfo &errinfo);
-        std::string GetLocalAddress() const;
-        int         GetLocalPort() const;
     }; // end class ServerSocket
 
     /**

@@ -116,7 +116,7 @@ protected:
     }
 
     void ListenSocket(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
+        ErrorInfo errinfo;
         CPPUNIT_ASSERT( ptrSocket->Listen(SOMAXCONN, errinfo));
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_OPEN );
     }

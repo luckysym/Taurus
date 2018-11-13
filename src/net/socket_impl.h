@@ -59,6 +59,8 @@ namespace net {
         bool  Create(const Protocol &proto, ErrorInfo & errinfo);
         std::string GetLocalAddress(ErrorInfo &error) const;
         const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
+        int   GetLocalPort(ErrorInfo& e) const;
+        int   GetRemotePort(ErrorInfo &e) const;
         bool  Listen(int backlog, ErrorInfo &errinfo);
         bool  ShutdownInput(std::string &errinfo);
         bool  ShutdownOutput(std::string &errinfo);
@@ -194,6 +196,54 @@ namespace net {
             oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
             error.set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
             return std::string();
+        }
+    }
+
+    inline int SocketImpl::GetLocalPort(ErrorInfo &e) const {
+        char addrbuf[32];
+        socklen_t addrlen = 32;
+        int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+        if ( r == -1 ) {
+            std::ostringstream oss;
+            oss<<"getsockname() error, fd: "<<m_fd<<". "<<sockerr;
+            e.set(-1, oss.str().c_str(), "SocketImpl::GetLocalPort");
+            return -1;
+        }
+        if ( m_domain == Protocol::DomainInet4) {
+            struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
+            return ntohs(paddr->sin_port);
+        } else if ( m_domain == Protocol::DomainInet6) {
+            struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
+            return ntohs(paddr->sin6_port);
+        } else  {
+            std::ostringstream oss;
+            oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
+            e.set(-1, oss.str().c_str(), "SocketImpl::GetLocalPort");
+            return -1;
+        }
+    }
+
+    inline int SocketImpl::GetRemotePort(ErrorInfo &e) const {
+        char addrbuf[32];
+        socklen_t addrlen = 32;
+        int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+        if ( r == -1 ) {
+            std::ostringstream oss;
+            oss<<"getpeername() error, fd: "<<m_fd<<". "<<sockerr;
+            e.set(-1, oss.str().c_str(), "SocketImpl::GetRemotePort");
+            return -1;
+        }
+        if ( m_domain == Protocol::DomainInet4) {
+            struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
+            return ntohs(paddr->sin_port);
+        } else if ( m_domain == Protocol::DomainInet6) {
+            struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
+            return ntohs(paddr->sin6_port);
+        } else  {
+            std::ostringstream oss;
+            oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
+            e.set(-1, oss.str().c_str(), "SocketImpl::GetRemotePort");
+            return -1;
         }
     }
 

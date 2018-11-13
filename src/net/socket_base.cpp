@@ -25,6 +25,24 @@ bool SocketBase::Create(const Protocol &proto, ErrorInfo & errinfo) {
     return m_pImpl->Create( proto, errinfo );
 }
 
+std::string SocketBase::getLocalAddress(ErrorInfo & e) const {
+    return m_pImpl->GetLocalAddress(e);
+}
+
+std::string SocketBase::getLocalAddress() const {
+    ErrorInfo e;
+    return m_pImpl->GetLocalAddress(e);
+}
+
+int SocketBase::getLocalPort(ErrorInfo & e) const {
+    return m_pImpl->GetLocalPort(e);
+}
+
+int SocketBase::getLocalPort() const {
+    ErrorInfo e;
+    return m_pImpl->GetLocalPort(e);
+}
+
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}
 
