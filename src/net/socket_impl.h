@@ -43,7 +43,7 @@ namespace net {
 
         SocketImpl(const SocketImpl &other) = delete; 
         SocketImpl(SocketImpl && other);
-        virtual ~SocketImpl() { ErrorInfo err; this->Close(err); }
+        virtual ~SocketImpl() { RuntimeError err; this->Close(err); }
 
         SocketImpl & operator=(SocketImpl &&other) ;
         SocketImpl & operator=(const SocketImpl& other) = delete;
@@ -53,15 +53,15 @@ namespace net {
         int   SocketType() const { return m_socktype; }
         int   Fd() const { return m_fd; }
         
-        bool  Bind(const char *host, int port, ErrorInfo & errinfo);
-        bool  Close(ErrorInfo &e);
+        bool  Bind(const char *host, int port, RuntimeError & errinfo);
+        bool  Close(RuntimeError &e);
         bool  Connect(const InetAddress &address, int port, std::string & errinfo);
-        bool  Create(const Protocol &proto, ErrorInfo & errinfo);
-        std::string GetLocalAddress(ErrorInfo &error) const;
+        bool  Create(const Protocol &proto, RuntimeError & errinfo);
+        std::string GetLocalAddress(RuntimeError &error) const;
         const InetSocketAddress * GetRemoteAddress(std::string &errinfo) const;
-        int   GetLocalPort(ErrorInfo& e) const;
-        int   GetRemotePort(ErrorInfo &e) const;
-        bool  Listen(int backlog, ErrorInfo &errinfo);
+        int   GetLocalPort(RuntimeError& e) const;
+        int   GetRemotePort(RuntimeError &e) const;
+        bool  Listen(int backlog, RuntimeError &errinfo);
         bool  ShutdownInput(std::string &errinfo);
         bool  ShutdownOutput(std::string &errinfo);
         int   State() const { return m_state; }
@@ -99,7 +99,7 @@ namespace net {
         return *this;
     }
 
-    inline bool SocketImpl::Close(ErrorInfo & e) {
+    inline bool SocketImpl::Close(RuntimeError & e) {
         if ( m_fd != INVALID_SOCKET ) {
             m_state = SOCK_STATE_CLOSED;
             int r = ::close(m_fd);
@@ -114,7 +114,7 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::Create(const Protocol &proto, ErrorInfo & errinfo) {
+    inline bool SocketImpl::Create(const Protocol &proto, RuntimeError & errinfo) {
         // 是否已经创建判断，避免重复创建。
         if ( m_fd != INVALID_SOCKET ) throw std::runtime_error("socket already created, cannot create again");
 
@@ -134,7 +134,7 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::Bind(const char *host, int port, ErrorInfo &errinfo) {
+    inline bool SocketImpl::Bind(const char *host, int port, RuntimeError &errinfo) {
         InetAddress::Ptr ptrAddr( NewInetAddress(m_domain, host, errinfo) );
         if ( !ptrAddr) {
             std::ostringstream oss;
@@ -163,7 +163,7 @@ namespace net {
             if ( e == EINPROGRESS ) m_state = SOCK_STATE_OPENING; 
             std::ostringstream oss;
             oss<<"connect() error, fd: "<<m_fd<<", remote: "<<ptrRemoteAddr->ToString();
-            MakeSocketErrorInfo(errinfo, oss);
+            MakeSocketRuntimeError(errinfo, oss);
             return false;
         }
 
@@ -173,14 +173,14 @@ namespace net {
         return true;
     }
 
-    inline std::string SocketImpl::GetLocalAddress(ErrorInfo &error) const {
+    inline std::string SocketImpl::GetLocalAddress(RuntimeError &error) const {
         char addrbuf[32];
         socklen_t addrlen = 32;
         int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
         if ( r == -1 ) {
             std::ostringstream oss;
             oss<<"getsockname() error, fd: "<<m_fd;
-            error.set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
+            error.set(-1, MakeSocketRuntimeError(oss).c_str(), "SocketImpl::GetLocalAddress");
             return std::string();
         }
         if ( m_domain == Protocol::DomainInet4) {
@@ -194,12 +194,12 @@ namespace net {
         } else  {
             std::ostringstream oss;
             oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
-            error.set(-1, MakeSocketErrorInfo(oss).c_str(), "SocketImpl::GetLocalAddress");
+            error.set(-1, MakeSocketRuntimeError(oss).c_str(), "SocketImpl::GetLocalAddress");
             return std::string();
         }
     }
 
-    inline int SocketImpl::GetLocalPort(ErrorInfo &e) const {
+    inline int SocketImpl::GetLocalPort(RuntimeError &e) const {
         char addrbuf[32];
         socklen_t addrlen = 32;
         int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
@@ -223,7 +223,7 @@ namespace net {
         }
     }
 
-    inline int SocketImpl::GetRemotePort(ErrorInfo &e) const {
+    inline int SocketImpl::GetRemotePort(RuntimeError &e) const {
         char addrbuf[32];
         socklen_t addrlen = 32;
         int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
@@ -255,7 +255,7 @@ namespace net {
             if ( r == -1 ) {
                 std::ostringstream oss;
                 oss<<"getpeername() error, fd: "<<m_fd;
-                MakeSocketErrorInfo(errinfo, oss);
+                MakeSocketRuntimeError(errinfo, oss);
                 return nullptr;
             }
             m_ptrRemoteAddr = std::make_shared<InetSocketAddress>((sockaddr*)addrbuf, addrlen);
@@ -263,7 +263,7 @@ namespace net {
         return m_ptrRemoteAddr.get();
     }
 
-    inline bool SocketImpl::Listen(int backlog, ErrorInfo &errinfo) {
+    inline bool SocketImpl::Listen(int backlog, RuntimeError &errinfo) {
         int r = ::listen(m_fd, backlog);
         if ( r == -1 ) {
             std::ostringstream oss;
@@ -281,7 +281,7 @@ namespace net {
         if ( r == -1 ) {
             std::ostringstream oss;
             oss<<"shutdown(RD) error, fd: "<<m_fd<<", ";
-            MakeSocketErrorInfo(errinfo, oss);
+            MakeSocketRuntimeError(errinfo, oss);
             return false;
         }
         return true;
@@ -293,7 +293,7 @@ namespace net {
         if ( r == -1 ) {
             std::ostringstream oss;
             oss<<"shutdown(WR) error, fd: "<<m_fd<<", ";
-            MakeSocketErrorInfo(errinfo, oss);
+            MakeSocketRuntimeError(errinfo, oss);
             return false;
         }
         return true;

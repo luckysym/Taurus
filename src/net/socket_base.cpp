@@ -17,40 +17,40 @@ SocketBase::~SocketBase() {
 
 int SocketBase::Fd() const { return m_pImpl->Fd(); }
 
-bool SocketBase::Close(ErrorInfo &errinfo) { 
+bool SocketBase::Close(RuntimeError &errinfo) { 
     return m_pImpl->Close(errinfo);
 }
 
-bool SocketBase::Create(const Protocol &proto, ErrorInfo & errinfo) {
+bool SocketBase::Create(const Protocol &proto, RuntimeError & errinfo) {
     return m_pImpl->Create( proto, errinfo );
 }
 
-std::string SocketBase::getLocalAddress(ErrorInfo & e) const {
+std::string SocketBase::getLocalAddress(RuntimeError & e) const {
     return m_pImpl->GetLocalAddress(e);
 }
 
 std::string SocketBase::getLocalAddress() const {
-    ErrorInfo e;
+    RuntimeError e;
     return m_pImpl->GetLocalAddress(e);
 }
 
-int SocketBase::getLocalPort(ErrorInfo & e) const {
+int SocketBase::getLocalPort(RuntimeError & e) const {
     return m_pImpl->GetLocalPort(e);
 }
 
 int SocketBase::getLocalPort() const {
-    ErrorInfo e;
+    RuntimeError e;
     return m_pImpl->GetLocalPort(e);
 }
 
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}
 
-bool ServerSocket::Bind(const char * host, int port, ErrorInfo & errinfo) {
+bool ServerSocket::Bind(const char * host, int port, RuntimeError & errinfo) {
     return GetImpl().Bind(host, port, errinfo);
 }
 
-bool ServerSocket::listen(int backlog, ErrorInfo &errinfo) {
+bool ServerSocket::listen(int backlog, RuntimeError &errinfo) {
     return GetImpl().Listen(backlog, errinfo);
 }
 

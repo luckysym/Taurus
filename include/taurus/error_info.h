@@ -5,20 +5,20 @@
 
 namespace taurus {
 
-class ErrorInfo {
+class RuntimeError {
     int                    m_code;
     std::string            m_message;
     std::string            m_hint;
     std::list<std::string> m_stack;
 
 public:
-    ErrorInfo();
-    ErrorInfo(const ErrorInfo &e);
-    ErrorInfo(ErrorInfo && e);
-    ~ErrorInfo();
+    RuntimeError();
+    RuntimeError(const RuntimeError &e);
+    RuntimeError(RuntimeError && e);
+    ~RuntimeError();
 
-    ErrorInfo & operator= (const ErrorInfo &e);
-    ErrorInfo & operator= (ErrorInfo &&e);
+    RuntimeError & operator= (const RuntimeError &e);
+    RuntimeError & operator= (RuntimeError &&e);
 
     int          code() const throw() { return m_code; }
     const char * message() const throw() { return m_message.c_str(); }
@@ -26,28 +26,28 @@ public:
     
     void set(int code, const char *message, const char * hint = nullptr) throw();
     void push(const char * stackinfo) throw();
-    void merge(ErrorInfo &errinfo) throw();
+    void merge(RuntimeError &errinfo) throw();
     void clear() throw();
 
     std::string toString() const throw();
     template <class OutStream>
     void printStack(OutStream & os);
-}; // end class ErrorInfo
+}; // end class RuntimeError
 
-inline ErrorInfo::ErrorInfo() : m_code(0) {}
-inline ErrorInfo::~ErrorInfo() { m_code = 0; }
+inline RuntimeError::RuntimeError() : m_code(0) {}
+inline RuntimeError::~RuntimeError() { m_code = 0; }
 
-inline ErrorInfo::ErrorInfo(const ErrorInfo &e) 
+inline RuntimeError::RuntimeError(const RuntimeError &e) 
     : m_code(e.m_code), m_message(e.m_message)
     , m_hint(e.m_hint), m_stack(e.m_stack) { }
 
-inline ErrorInfo::ErrorInfo(ErrorInfo && e) 
+inline RuntimeError::RuntimeError(RuntimeError && e) 
     : m_code(e.m_code)
     , m_message(std::move(e.m_message))
     , m_hint(std::move(e.m_hint))
     , m_stack( std::move(e.m_stack ) ) { e.m_code = 0; }
 
-inline ErrorInfo & ErrorInfo::operator=(const ErrorInfo &e) {
+inline RuntimeError & RuntimeError::operator=(const RuntimeError &e) {
     if ( this == &e) return *this;
     m_code = e.m_code;
     m_message = e.m_message;
@@ -56,7 +56,7 @@ inline ErrorInfo & ErrorInfo::operator=(const ErrorInfo &e) {
     return *this;
 }
 
-inline ErrorInfo & ErrorInfo::operator= ( ErrorInfo && e) {
+inline RuntimeError & RuntimeError::operator= ( RuntimeError && e) {
     if ( this == &e) return *this;
     m_code = e.m_code; e.m_code = 0;
     m_message = std::move(e.m_message);
@@ -65,7 +65,7 @@ inline ErrorInfo & ErrorInfo::operator= ( ErrorInfo && e) {
     return *this;
 }
 
-inline void ErrorInfo::set(int code, const char *message, const char * hint) throw() {
+inline void RuntimeError::set(int code, const char *message, const char * hint) throw() {
     m_code = code;
     m_message.assign(message);
     if ( hint ) m_hint.assign(hint);
@@ -78,25 +78,25 @@ inline void ErrorInfo::set(int code, const char *message, const char * hint) thr
     }
 }
 
-inline void ErrorInfo::push(const char * errinfo) throw() {
+inline void RuntimeError::push(const char * errinfo) throw() {
     m_stack.push_back(errinfo);
 }
 
-inline void ErrorInfo::merge(ErrorInfo &errinfo) throw() {
+inline void RuntimeError::merge(RuntimeError &errinfo) throw() {
     m_code = errinfo.m_code; errinfo.m_code = 0;
     m_message = std::move(errinfo.m_message);
     m_hint = std::move(errinfo.m_hint);
     m_stack.splice(m_stack.begin(), errinfo.m_stack);
 }
 
-inline void ErrorInfo::clear() throw() {
+inline void RuntimeError::clear() throw() {
     m_code = 0;
     m_message.clear();
     m_hint.clear();
     m_stack.clear();
 }
 
-inline std::string ErrorInfo::toString() const throw() {
+inline std::string RuntimeError::toString() const throw() {
     std::ostringstream oss;
     oss<<"error code: "<<m_code<<", message: "<<m_message<<std::endl;
     oss<<"stack: "<<std::endl;
@@ -108,7 +108,7 @@ inline std::string ErrorInfo::toString() const throw() {
 }
 
 template <class OutStream>
-inline void ErrorInfo::printStack(OutStream & os) {
+inline void RuntimeError::printStack(OutStream & os) {
     os<<"error code: "<<m_code<<", message: "<<m_message<<std::endl;
     os<<"stack: "<<std::endl;
     auto it = m_stack.begin();

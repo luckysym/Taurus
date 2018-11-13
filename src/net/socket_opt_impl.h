@@ -41,7 +41,7 @@ inline bool SocketOptImpl::Set(const void *pvalue, socklen_t len, std::string &e
         std::ostringstream oss;
         oss<<"setsockopt failed, fd: "<<m_fd<<", level: "<<m_level<<", optname: "<<m_name;
         oss<<", valueptr: "<<pvalue<<", value_len: "<<len<<". ";
-        errinfo = MakeSocketErrorInfo(oss);
+        errinfo = MakeSocketRuntimeError(oss);
         return false;
     }
     return true;
@@ -53,7 +53,7 @@ inline bool SocketOptImpl::Get(void * pvalue, socklen_t * len, std::string &erri
     if ( r == -1 ) {
         std::ostringstream oss;
         oss<<"getsockopt failed, fd: "<<m_fd<<", level: "<<m_level<<", optname: "<<m_name<<". ";
-        errinfo = MakeSocketErrorInfo(oss);
+        errinfo = MakeSocketRuntimeError(oss);
         return false;
     }
     return true;

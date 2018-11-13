@@ -155,7 +155,7 @@ Inet4Address::Inet4Address(uint32_t addr)
     : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
     , m_addr(addr) {}
 
-Inet4Address::Inet4Address(const char * pszAddress, ErrorInfo &errinfo) 
+Inet4Address::Inet4Address(const char * pszAddress, RuntimeError &errinfo) 
     : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
     , m_addr(0) 
 {
@@ -205,7 +205,7 @@ Inet6Address::Inet6Address(const unsigned char addr[16], size_t n)
     *p0 = *p1;
 }
 
-Inet6Address::Inet6Address(const char *pszAddress, ErrorInfo &errinfo) 
+Inet6Address::Inet6Address(const char *pszAddress, RuntimeError &errinfo) 
     : InetAddress(Protocol::DomainInet6, m_addr, sizeof(m_addr)) {
     int r = inet_pton(AF_INET6, pszAddress, &m_addr);
     if ( r == 0 ) {

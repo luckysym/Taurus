@@ -65,7 +65,7 @@ protected:
         printf("Server Socket Ptr: %p\n", ptrSocket.get());
         CPPUNIT_ASSERT( ptrSocket != nullptr );
 
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         CPPUNIT_ASSERT( ptrSocket->Create(Protocol::Tcp4, errinfo) );
         CPPUNIT_ASSERT( ptrSocket->Fd() > 0 );
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_CREATED );
@@ -103,7 +103,7 @@ protected:
     }
 
     void CloseSocket(SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         cout<<"Socket Closed: "<<ptrSocket->Fd()<<endl;
         CPPUNIT_ASSERT( ptrSocket->Close(errinfo));
         CPPUNIT_ASSERT( ptrSocket->Fd() == INVALID_SOCKET );
@@ -111,17 +111,17 @@ protected:
     }
 
     void BindSocket (SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         CPPUNIT_ASSERT( ptrSocket->Bind("0.0.0.0", 10024, errinfo));
     }
 
     void ListenSocket(SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         CPPUNIT_ASSERT( ptrSocket->Listen(SOMAXCONN, errinfo));
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_OPEN );
     }
     void GetLocalAddress(SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         string addr = ptrSocket->GetLocalAddress(errinfo);
         CPPUNIT_ASSERT(errinfo.code() == 0);
         CPPUNIT_ASSERT(!addr.empty());
@@ -129,7 +129,7 @@ protected:
     }
 
     void ConnectSocketInvalid(SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         Inet4Address address("127.0.0.1", errinfo);
         CPPUNIT_ASSERT( errinfo.code() == 0 );
 
@@ -140,7 +140,7 @@ protected:
     }
 
     void ConnectSocketLocal22(SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         Inet4Address address("127.0.0.1", errinfo);
         CPPUNIT_ASSERT( errinfo.code() == 0 );
 
@@ -158,7 +158,7 @@ protected:
     }
 
     void GetClientLocalAddress(SocketImpl::Ptr &ptrSocket) {
-        ErrorInfo errinfo;
+        RuntimeError errinfo;
         string addr = ptrSocket->GetLocalAddress(errinfo);
         CPPUNIT_ASSERT(errinfo.code() == 0);
         CPPUNIT_ASSERT(!addr.empty());

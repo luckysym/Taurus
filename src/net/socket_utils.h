@@ -28,30 +28,30 @@ namespace net {
      * @brief 生成Socket系统错误消息。
      * @param str  错误消息的前缀。
      */ 
-    inline std::string MakeSocketErrorInfo(const char * str) {
+    inline std::string MakeSocketRuntimeError(const char * str) {
         std::ostringstream oss;
         int e = errno;
         oss<<str<<" errno: "<<e<<", "<<strerror(e);
         return oss.str();
     }
-    inline void MakeSocketErrorInfo(std::string &errinfo, const char * str) {
+    inline void MakeSocketRuntimeError(std::string &errinfo, const char * str) {
         std::ostringstream oss;
         int e = errno;
         oss<<str<<" errno: "<<e<<", "<<strerror(e);
         errinfo = oss.str();
     }
-    inline std::string MakeSocketErrorInfo(std::ostringstream &oss) {
+    inline std::string MakeSocketRuntimeError(std::ostringstream &oss) {
         int e = errno;
         oss<<" errno: "<<e<<", "<<strerror(e);
         return oss.str();
     }
-    inline void MakeSocketErrorInfo(std::string &errinfo, std::ostringstream &oss) {
+    inline void MakeSocketRuntimeError(std::string &errinfo, std::ostringstream &oss) {
         int e = errno;
         oss<<" errno: "<<e<<", "<<strerror(e);
         errinfo = oss.str();
     }
 
-    inline InetAddress * NewInetAddress(int domain, const char * host, ErrorInfo & e) {
+    inline InetAddress * NewInetAddress(int domain, const char * host, RuntimeError & e) {
         if ( domain == Protocol::DomainInet4 ) { 
             return new Inet4Address(host, e);
         } else if ( domain == Protocol::DomainInet6 ) {
