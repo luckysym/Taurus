@@ -2,6 +2,7 @@
 #include <taurus/error_info.h>
 
 #include "socket_impl.h"
+#include "socket_opt_impl.h"
 
 namespace taurus {
 namespace net {
@@ -46,15 +47,43 @@ int SocketBase::getLocalPort() const {
     if ( e ) throw e;
 }
 
-std::string SocketBase::getLocalEndpint(RuntimeError &e) const  {
+std::string SocketBase::getLocalEndpoint(RuntimeError &e) const  {
     return m_pImpl->GetLocalEndpoint(e);
 }
 
-std::string SocketBase::GetLocalEndpoint() const {
+std::string SocketBase::getLocalEndpoint() const {
     RuntimeError e;
-    m_pImpl->GetLocalEndpoint(e);
-    if ( !e ) return true;
+    std::string str = m_pImpl->GetLocalEndpoint(e);
+    if ( !e ) return str;
     throw e;
+}
+
+bool SocketBase::setReuseAddress(bool on, RuntimeError &e) {
+    SocketOptReuseAddr opt( m_pImpl->Fd() );
+    std::string errstr;
+    bool isok = opt.Set(on, errstr);
+    if ( isok ) return true;
+    e.set(-1, errstr.c_str(), "SocketBase::setReuseAddress");
+    return false;
+}
+
+int SocketBase::getReuseAddress(RuntimeError &e) const {
+    SocketOptReuseAddr opt(m_pImpl->Fd());
+    std::string errstr;
+    bool value;
+    bool isok = opt.Get(&value, errstr);
+    if ( isok ) return value?1:0;
+    e.set(-1, errstr.c_str(), "SocketBase::getReuseAddress");
+    return -1;
+}
+
+int SocketBase::getReuseAddress() const {
+    SocketOptReuseAddr opt(m_pImpl->Fd());
+    std::string errstr;
+    bool value;
+    bool isok = opt.Get(&value, errstr);
+    if ( isok ) return value?1:0;
+    return -1;
 }
 
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}

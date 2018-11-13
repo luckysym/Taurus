@@ -264,13 +264,6 @@ namespace net {
         int         getLocalPort() const;
         std::string getLocalEndpoint(RuntimeError &e) const;
         std::string getLocalEndpoint() const;
-        
-        /*
-         * 设置和获取Socket超时SO_TIMEOUT。单位毫秒。
-         */
-        bool setSoTimeout(int ms, RuntimeError &e);  
-        int  getSoTimeout(RuntimeError &e) const;
-        int  getSoTimeout() const;
 
         /*
          * 设置和获取SO_REUSEADDR参数。
