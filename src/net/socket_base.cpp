@@ -46,6 +46,17 @@ int SocketBase::getLocalPort() const {
     if ( e ) throw e;
 }
 
+std::string SocketBase::getLocalEndpint(RuntimeError &e) const  {
+    return m_pImpl->GetLocalEndpoint(e);
+}
+
+std::string SocketBase::GetLocalEndpoint() const {
+    RuntimeError e;
+    m_pImpl->GetLocalEndpoint(e);
+    if ( !e ) return true;
+    throw e;
+}
+
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}
 

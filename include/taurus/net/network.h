@@ -247,7 +247,7 @@ namespace net {
     public:
         SocketImpl & getImpl() { return *m_pImpl; }
         const SocketImpl & getImpl() const { return *m_pImpl; }
-        
+
     public:
         virtual ~SocketBase();
 
@@ -255,11 +255,36 @@ namespace net {
         bool create(const Protocol &proto, RuntimeError &errinfo);
         bool close(RuntimeError &e);
 
+        /*
+         * 获取本地地址端口。
+         */
         std::string getLocalAddress(RuntimeError & e) const;
         std::string getLocalAddress() const;
         int         getLocalPort(RuntimeError & e) const;
         int         getLocalPort() const;
+        std::string getLocalEndpoint(RuntimeError &e) const;
+        std::string getLocalEndpoint() const;
+        
+        /*
+         * 设置和获取Socket超时SO_TIMEOUT。单位毫秒。
+         */
+        bool setSoTimeout(int ms, RuntimeError &e);  
+        int  getSoTimeout(RuntimeError &e) const;
+        int  getSoTimeout() const;
 
+        /*
+         * 设置和获取SO_REUSEADDR参数。
+         */
+        bool setReuseAddress(bool on, RuntimeError &e);
+        int  getReuseAddress(RuntimeError &e) const;
+        int  getReuseAddress() const;
+
+        /*
+         * 设置和获取Socket阻塞模式。getBlockMode返回0表示非阻塞，返回1表示阻塞，-1表示操作失败。
+         */
+        bool setBlockMode(bool bBlocked, RuntimeError &e);
+        int  getBlockMode(RuntimeError &e) const;
+        int  getBlockMode() const;
     }; // class SocketBase
 
     /**
@@ -280,7 +305,7 @@ namespace net {
      */
     class StreamSocket : public SocketBase  {
     public:
-        StreamSocket() ;
+        StreamSocket();
     }; // end class StreamSocket
 
     /**
