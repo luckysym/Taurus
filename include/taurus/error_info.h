@@ -20,6 +20,9 @@ public:
     RuntimeError & operator= (const RuntimeError &e);
     RuntimeError & operator= (RuntimeError &&e);
 
+    operator bool () const { return m_code != 0;  }  // 是否包含错误
+    bool operator !() const { return m_code == 0; }  // 是否正常
+
     int          code() const throw() { return m_code; }
     const char * message() const throw() { return m_message.c_str(); }
     const char * hint() const throw() { return m_hint.c_str();}
