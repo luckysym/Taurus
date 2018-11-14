@@ -10,8 +10,8 @@
 
 #include <iostream>
 
-using namespace taurus;
-using namespace taurus::net;
+using namespace mercury;
+using namespace mercury::net;
 using namespace std;
 
 class SocketImpTest : public CppUnit::TestFixture {

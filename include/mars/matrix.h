@@ -10,6 +10,8 @@ namespace mars
 {
 template <class T>
 class TMatrix  {
+public:
+    typedef T ValueType;
 private:
     size_t m_rows;
     size_t m_cols;
@@ -132,6 +134,20 @@ public:
             oss<<std::endl;
         }
     }
+
+    /**
+     * 转置矩阵计算。
+     */
+    TMatrix<T> transpose() const {
+        TMatrix<T> mr(this->cols(), this->rows());
+        for(size_t i = 0; i < mr.rows(); ++i ) {
+            for( size_t j = 0; j < mr.cols(); ++j) {
+                mr(i, j) = (*this)(j, i);
+            }
+        }
+        return std::move(mr);
+    }
+
 }; // end class TMatrix
 
 typedef TMatrix<double> DoubleMatrix;
@@ -229,5 +245,37 @@ TMatrix<T> operator*(const TMatrix<T> &m, T value) {
     return std::move(mr);
 }
 
+/**
+ * 矩阵除法，m中每个元素除以value.
+ */
+template <class T>
+TMatrix<T> operator / (const TMatrix<T> &m, T value) {
+    TMatrix<T> mr(m.rows(), m.cols());
+    for(size_t i = 0; i < mr.rows(); ++i) {
+        for ( size_t j = 0; j < mr.cols(); ++j) {
+            mr(i, j) = m(i, j) / value; 
+        }
+    }
+    return std::move(mr);
+}
+
+template<class T>
+struct Matop { 
+
+    // 转置矩阵计算
+    static TMatrix<T> transpose(const TMatrix<T> &m);
+}; // end class Matop
+
+// 矩阵转置
+template<class T>
+TMatrix<T> Matop<T>::transpose(const TMatrix<T> &m) {
+    TMatrix<T> mr(m.cols(), m.rows());
+    for(size_t i = 0; i < mr.rows(); ++i ) {
+        for( size_t j = 0; j < mr.cols(); ++j) {
+            mr(i, j) = m(j, i);
+        }
+    }
+    return std::move(mr);
+}
 
 } // end namespace mars

@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <taurus/net/network.h>
+#include <mercury/net/network.h>
 
 #include <sstream>
 #include <string>
@@ -11,7 +11,7 @@
 #define INVALID_SOCKET   -1
 #endif // INVALID_SOCKET
 
-namespace taurus{
+namespace mercury{
 namespace net {
 
     /**
@@ -65,4 +65,4 @@ namespace net {
     }
 
 } // end namespace net
-} // end namespace taurus
+} // end namespace mercury

@@ -1,4 +1,4 @@
-#include <taurus/net/network.h>
+#include <mercury/net/network.h>
 
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -8,7 +8,7 @@
 #include <cassert>
 #include <sstream>
 
-namespace taurus  {
+namespace mercury  {
 namespace net {
 
 InetAddress::InetAddress(int domain, void * paddr, size_t addrlen)
@@ -218,7 +218,7 @@ Inet6Address::Inet6Address(const char *pszAddress, RuntimeError &errinfo)
     }
 }
 
-Inet6Address::Inet6Address(const taurus::net::Inet6Address & other )
+Inet6Address::Inet6Address(const mercury::net::Inet6Address & other )
     : InetAddress(Protocol::DomainInet6, m_addr, sizeof(m_addr)) 
 {
     struct in6_addr * p1 = (struct in6_addr *)other.m_addr;
@@ -428,4 +428,4 @@ socklen_t InetSocketAddress::CAddressSize() const {
     else return 0;
 }
 
-}} // end namespace taurus::net
+}} // end namespace mercury::net

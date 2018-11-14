@@ -1,6 +1,6 @@
 #pragma once 
-#include <taurus/net/network.h>
-#include <taurus/error_info.h>
+#include <mercury/net/network.h>
+#include <mercury/error_info.h>
 #include <memory>
 #include <cassert>
 #include <stdexcept>
@@ -8,7 +8,7 @@
 
 #include "socket_utils.h"
 
-namespace taurus {
+namespace mercury {
 namespace net {
 
     /**
@@ -338,4 +338,4 @@ namespace net {
         return true;
     }
 
-}} // end namespace taurus::net
+}} // end namespace mercury::net

@@ -5,7 +5,7 @@ cmake_minimum_required( VERSION 2.8 )
 set( CMAKE_CXX_FLAGS "-std=c++11 -g" )
 
 # 声明一个cmake工程
-project( taurus )
+project( mercury )
 
 # 头文件
 include_directories(

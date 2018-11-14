@@ -1,11 +1,11 @@
-#include <taurus/net/network.h>
+#include <mercury/net/network.h>
 
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/un.h>
 
-namespace taurus  {
+namespace mercury  {
 namespace net {
 
     const Protocol Protocol::Tcp4(AF_INET, SOCK_STREAM, 0);
@@ -37,4 +37,4 @@ namespace net {
         oss<<m_proto;
         return oss.str();
     }
-}} // end namespace taurus::net
+}} // end namespace mercury::net

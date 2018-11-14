@@ -16,6 +16,7 @@ class MatrixTest : public CppUnit::TestFixture {
     CPPUNIT_TEST( testMatrixInit );
     CPPUNIT_TEST( testMatrixAdd );
     CPPUNIT_TEST( testMatrixMultiply );
+    CPPUNIT_TEST( testMatrixTranspose);
     CPPUNIT_TEST_SUITE_END();
     
 public:
@@ -78,6 +79,18 @@ public:
 
         mr1 = m1 * 2;
         mr1.print(std::cout);
+    }
+
+    void testMatrixTranspose() {
+        int a1[3][4] = {{3, 2, 1, 4}, {4, 7, 5, 6}, {9, 3, 6, 8}};
+        IntMatrix m1((int *)a1, 3, 4);
+        IntMatrix m2 = m1.transpose();
+        CPPUNIT_ASSERT(m2.rows() == m1.cols());
+        CPPUNIT_ASSERT(m2.cols() == m1.rows());
+        m2.print(std::cout);
+
+        IntMatrix m3 = Matop<int>::transpose(m2);
+        m3.print(std::cout);
     }
 }; // end class MatrixTest
 

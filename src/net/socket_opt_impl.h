@@ -7,7 +7,7 @@
 
 #include "socket_utils.h"
 
-namespace taurus  {
+namespace mercury  {
 namespace net {
 
 class SocketOptImpl;
@@ -194,4 +194,4 @@ public:
 
 
 } // end namespace net
-} // end namespace taurus
+} // end namespace mercury

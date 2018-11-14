@@ -1,10 +1,10 @@
-#include <taurus/net/network.h>
-#include <taurus/error_info.h>
+#include <mercury/net/network.h>
+#include <mercury/error_info.h>
 
 #include "socket_impl.h"
 #include "socket_opt_impl.h"
 
-namespace taurus {
+namespace mercury {
 namespace net {
 
 SocketBase::SocketBase(const char * pszTypeName) 
@@ -112,4 +112,4 @@ bool ServerSocket::accept(StreamSocket &rSock, RuntimeError &e) {
 StreamSocket::StreamSocket() : SocketBase("StreamSocket") {}
 
 } // end namespace net
-} // end namespace taurus
+} // end namespace mercury

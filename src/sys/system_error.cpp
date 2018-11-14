@@ -1,9 +1,9 @@
-#include <taurus/sys/system_error.h>
+#include <mercury/sys/system_error.h>
 
 #include <errno.h>
 #include <string.h>
 
-namespace taurus {
+namespace mercury {
 namespace system {
 
     SystemError SystemError::last_error() {
@@ -11,4 +11,4 @@ namespace system {
         return SystemError(e, strerror(e));
     }
 
-}} // end namespace taurus::system
+}} // end namespace mercury::system

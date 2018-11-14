@@ -6,7 +6,7 @@
 
 #include "socket_utils.h"
 
-namespace taurus {
+namespace mercury {
 namespace net {
 
 class SocketIoError {}
@@ -102,4 +102,4 @@ public:
 
 
 } // end namespace net
-} // end namespace taurus
+} // end namespace mercury
