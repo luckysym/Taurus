@@ -4,6 +4,8 @@
 #include "socket_impl.h"
 #include "socket_opt_impl.h"
 
+#include <fcntl.h>
+
 namespace mercury {
 namespace net {
 
@@ -85,6 +87,50 @@ int SocketBase::getReuseAddress() const {
     if ( isok ) return value?1:0;
     return -1;
 }
+
+bool SocketBase::setBlockMode(bool bBlocked, RuntimeError &e) {
+    int r = ::fcntl(m_pImpl->Fd(), F_GETFL);
+	if ( r < 0 ) {
+		std::ostringstream oss;
+        oss<<"fcntl(F_GETFL) error, "<<syserr<<", fd: "<<m_pImpl->Fd();
+        e.set(-1, oss.str().c_str(), "SocketBase::setBlockMode");
+		return false;
+	}
+
+	if ( (r & O_NONBLOCK) && bBlocked )  // non-block to block
+		r = fcntl(m_pImpl->Fd(), F_SETFL, r & (~O_NONBLOCK));
+	else if ( !(r & O_NONBLOCK) && !bBlocked ) // block to non-block
+		r = fcntl(m_pImpl->Fd(), F_SETFL, r | O_NONBLOCK);
+
+	if ( r < 0 ) {
+		std::ostringstream oss;
+        oss<<"fcntl(F_SETFL) error, "<<syserr<<", fd: "<<m_pImpl->Fd();
+        e.set(-1, oss.str().c_str(), "SocketBase::setBlockMode");
+		return false;
+	}
+	return true;
+}
+
+int  SocketBase::getBlockMode(RuntimeError &e) const {
+    int r = ::fcntl(m_pImpl->Fd(), F_GETFL);
+	if ( r < 0 ) {
+        std::ostringstream oss;
+        oss<<"fcntl(F_GETFL) error, "<<syserr<<", fd: "<<m_pImpl->Fd();
+        e.set(-1, oss.str().c_str(), "SocketBase::getBlockMode");
+		return -1;
+	}
+
+	if ( r & O_NONBLOCK ) return 0;  // non-block
+    else return 1;  // block i/o
+}
+
+int  SocketBase::getBlockMode() const {
+    int r = ::fcntl(m_pImpl->Fd(), F_GETFL);
+	if ( r < 0 ) return -1;
+	if ( r & O_NONBLOCK ) return 0;  // non-block
+    else return 1;  // block i/o
+}
+
 
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}

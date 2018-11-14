@@ -20,7 +20,12 @@ namespace net {
      */
     inline std::ostringstream & sockerr(std::ostringstream &oss) {
         int e = errno;
-        oss<<" errno: "<<e<<", errmsg: "<<strerror(e)<<". ";
+        oss<<" socket errno: "<<e<<", errmsg: "<<strerror(e)<<". ";
+        return oss;
+    }
+    inline std::ostringstream & syserr(std::ostringstream &oss) {
+        int e = errno;
+        oss<<" sys errno: "<<e<<", errmsg: "<<strerror(e)<<". ";
         return oss;
     }
 
