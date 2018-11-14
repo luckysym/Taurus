@@ -12,7 +12,7 @@ add_executable( ${PROJECT_NAME}
     matrix_test.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} taurus )
+target_link_libraries(${PROJECT_NAME} mercury )
 target_link_libraries(${PROJECT_NAME} cppunit)
 
 add_test(matrix_test matrix_test)
