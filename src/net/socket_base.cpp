@@ -24,10 +24,6 @@ bool SocketBase::close(RuntimeError &e) {
     return m_pImpl->Close(e);
 }
 
-bool SocketBase::create(const Protocol &proto, RuntimeError & e) {
-    return m_pImpl->Create( proto, e );
-}
-
 std::string SocketBase::getLocalAddress(RuntimeError & e) const {
     return m_pImpl->GetLocalAddress(e);
 }
@@ -135,6 +131,11 @@ int  SocketBase::getBlockMode() const {
 ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}
 
+bool ServerSocket::create(int domain, RuntimeError &e ) {
+    Protocol proto(domain, Protocol::TypeStream, 0);
+    return getImpl().Create( proto, e );
+}
+
 bool ServerSocket::bind(const char * host, int port, RuntimeError & errinfo) {
     return getImpl().Bind(host, port, errinfo);
 }
@@ -155,7 +156,40 @@ bool ServerSocket::accept(StreamSocket &rSock, RuntimeError &e) {
     return this->getImpl().accept(p->getImpl(), e);
 }
 
+bool ServerSocket::setSoTimeout(int timeout, RuntimeError &e) {
+    SocketOptRecvTimeout opt(this->fd());
+    std::string errstr;
+    bool isok = opt.Set(timeout, errstr);
+    if ( isok ) return true;
+    e.set(-1, errstr.c_str(), "ServerSocket::setSoTimeout");
+    return false;
+}
+
+int ServerSocket::getSoTimeout(RuntimeError &e) const {
+    SocketOptRecvTimeout opt(this->fd());
+    int ms = 0;
+    std::string errstr;
+    bool isok = opt.Get(&ms, errstr);
+    if ( isok ) return ms;
+    e.set(-1,errstr.c_str(), "ServerSocket::getSoTimeout");
+    return -1;
+}
+
+int ServerSocket::getSoTimeout() const {
+    std::string errstr;
+    SocketOptRecvTimeout opt(this->fd());
+    int ms = 0;
+    bool isok = opt.Get(&ms, errstr);
+    if ( isok ) return ms;
+    return -1;
+}
+
+
+
 StreamSocket::StreamSocket() : SocketBase("StreamSocket") {}
+StreamSocket::~StreamSocket() {}
+
+
 
 } // end namespace net
 } // end namespace mercury

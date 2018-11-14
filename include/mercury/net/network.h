@@ -252,7 +252,6 @@ namespace net {
         virtual ~SocketBase();
 
         int  fd() const;
-        bool create(const Protocol &proto, RuntimeError &errinfo);
         bool close(RuntimeError &e);
 
         /*
@@ -287,10 +286,17 @@ namespace net {
     public:
         ServerSocket();
         virtual ~ServerSocket();
+
         StreamSocket * accept(RuntimeError &e);
         bool  accept(StreamSocket &sock, RuntimeError &e);
+
+        bool  create(int domain, RuntimeError &e);
         bool  bind(const char *addr, int port, RuntimeError &errinfo);
         bool  listen(int backlog, RuntimeError &errinfo);
+        
+        bool  setSoTimeout(int timeout, RuntimeError &e);
+        int   getSoTimeout(RuntimeError &e) const;
+        int   getSoTimeout() const;
     }; // end class ServerSocket
 
     /**
@@ -299,12 +305,19 @@ namespace net {
     class StreamSocket : public SocketBase  {
     public:
         StreamSocket();
+        virtual ~StreamSocket();
+
+        bool  create(int domain, RuntimeError &e);
+
+        bool  setTcpNoDelay(int nodelay, RuntimeError &e);
+        int   getTcpNodelay(RuntimeError &e) const;
+        int   getTcpNodelay() const;
     }; // end class StreamSocket
 
     /**
      * @brief 面向数据报文的Socket.
      */
-    class DatagramSocket  {
+    class DatagramSocket : public SocketBase  {
     }; // end class DatagramSocket
 
 }} // end namespace mercury::net
