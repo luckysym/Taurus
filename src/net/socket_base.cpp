@@ -227,5 +227,21 @@ bool StreamSocket::shutdownOutput() {
     return getImpl().ShutdownOutput( e);
 }
 
+bool StreamSocket::isConnected() const {
+    return getImpl().State() == SocketImpl::SOCK_STATE_OPEN;
+}
+
+bool StreamSocket::isConnecting() const {
+    return getImpl().State() == SocketImpl::SOCK_STATE_OPENING;
+}
+
+bool StreamSocket::isInputShutdown() const { 
+    return getImpl().ShutdownState() & SocketImpl::SOCK_SHUT_READ; 
+}
+
+bool StreamSocket::isOutputShutdown() const {
+    return getImpl().ShutdownState() & SocketImpl::SOCK_SHUT_WRITE;
+}
+
 } // end namespace net
 } // end namespace mercury
