@@ -209,5 +209,23 @@ ssize_t StreamSocket::receive(char *buf, size_t len, RuntimeError &e) {
     return reader(e);
 }
 
+bool StreamSocket::shutdownInput(RuntimeError &e) {
+    return getImpl().ShutdownInput( e);
+}
+
+bool StreamSocket::shutdownOutput(RuntimeError &e) {
+    return getImpl().ShutdownOutput( e);
+}
+
+bool StreamSocket::shutdownInput() {
+    RuntimeError e;
+    return getImpl().ShutdownInput( e);
+}
+
+bool StreamSocket::shutdownOutput() {
+    RuntimeError e;
+    return getImpl().ShutdownOutput( e);
+}
+
 } // end namespace net
 } // end namespace mercury

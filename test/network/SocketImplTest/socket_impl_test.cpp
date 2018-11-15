@@ -160,7 +160,7 @@ protected:
     }
 
     void ShutdownSocket(SocketImpl::Ptr &ptrSocket) {
-        std::string errinfo;
+        RuntimeError errinfo;
         CPPUNIT_ASSERT( ptrSocket->ShutdownInput(errinfo) );
         CPPUNIT_ASSERT( ptrSocket->ShutdownOutput(errinfo) );
     }

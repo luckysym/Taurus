@@ -63,6 +63,7 @@ namespace net {
         bool  Close(RuntimeError &e);
         bool  Connect(const char *ip, int port, RuntimeError & errinfo);
         bool  Create(const Protocol &proto, RuntimeError & errinfo);
+        
         std::string GetLocalAddress(RuntimeError &error) const;
         std::string GetRemoteAddress(RuntimeError &errinfo) const;
         int   GetLocalPort(RuntimeError& e) const;
@@ -70,8 +71,8 @@ namespace net {
         std::string GetLocalEndpoint(RuntimeError &e) const;
 
         bool  Listen(int backlog, RuntimeError &errinfo);
-        bool  ShutdownInput(std::string &errinfo);
-        bool  ShutdownOutput(std::string &errinfo);
+        bool  ShutdownInput(RuntimeError &errinfo);
+        bool  ShutdownOutput(RuntimeError &errinfo);
         int   State() const { return m_state; }
         std::string ToString() const;
 
@@ -332,25 +333,27 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::ShutdownInput(std::string &errinfo) {
+    inline bool SocketImpl::ShutdownInput(RuntimeError &errinfo) {
         if ( m_fd == INVALID_SOCKET) return true;  // 已经关了
+        m_shutdown |= SOCK_SHUT_READ;
         int r = ::shutdown(m_fd, SHUT_RD);
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"shutdown(RD) error, fd: "<<m_fd<<", ";
-            MakeSocketRuntimeError(errinfo, oss);
+            oss<<"shutdown(RD) error, fd: "<<m_fd<<", "<<sockerr;
+            errinfo.set(-1, oss.str().c_str(), "SocketImpl::ShutdownInput");
             return false;
         }
         return true;
     }
 
-    inline bool SocketImpl::ShutdownOutput(std::string &errinfo) {
+    inline bool SocketImpl::ShutdownOutput(RuntimeError &errinfo) {
         if ( m_fd == INVALID_SOCKET) return true;  // 已经关了
+        m_shutdown |= SOCK_SHUT_WRITE;
         int r = ::shutdown(m_fd, SHUT_WR);
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"shutdown(WR) error, fd: "<<m_fd<<", ";
-            MakeSocketRuntimeError(errinfo, oss);
+            oss<<"shutdown(WR) error, fd: "<<m_fd<<", "<<sockerr;
+            errinfo.set(-1, oss.str().c_str(), "SocketImpl::ShutdownOutput");
             return false;
         }
         return true;
