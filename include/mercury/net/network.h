@@ -252,7 +252,10 @@ namespace net {
         virtual ~SocketBase();
 
         int  fd() const;
+        bool bind(const char *addr, int port, RuntimeError &errinfo);
         bool close(RuntimeError &e);
+        
+        bool isClosed() const;
 
         /*
          * 获取本地地址端口。
@@ -291,7 +294,6 @@ namespace net {
         bool  accept(StreamSocket &sock, RuntimeError &e);
 
         bool  create(int domain, RuntimeError &e);
-        bool  bind(const char *addr, int port, RuntimeError &errinfo);
         bool  listen(int backlog, RuntimeError &errinfo);
         
         bool  setSoTimeout(int timeout, RuntimeError &e);
@@ -307,11 +309,34 @@ namespace net {
         StreamSocket();
         virtual ~StreamSocket();
 
-        bool  create(int domain, RuntimeError &e);
+        bool    create(int domain, RuntimeError &e);
+        bool    connect(const char *ip, int port, RuntimeError &e);
+        ssize_t send(const char *buf, size_t len, RuntimeError &e);
+        ssize_t receive(char * buf, size_t len, RuntimeError &e);
+        bool    shutdownInput(RuntimeError &e);
+        bool    shutdownInput();
+        bool    shutdownOutput(RuntimeError &e);
+        bool    shutdownOutput();
 
-        bool  setTcpNoDelay(int nodelay, RuntimeError &e);
-        int   getTcpNodelay(RuntimeError &e) const;
-        int   getTcpNodelay() const;
+        bool    isConnected() const;  // 是否已完成连接
+        bool    isConnecting() const; // 是否正在连接，连接方法执行和连接完成之间的状态
+        bool    isInputShutdown() const;
+        bool    isOutputShutdown() const;
+
+        std::string getRemoteEndpoint(RuntimeError &e) const;
+        std::string getRemoteEndpoint() const;
+        std::string getRemoteAddres(RuntimeError &e) const;
+        std::string getRemoteAddres() const;
+        int         getRemotePort(RuntimeError &e) const;
+        int         getRemotePort() const;
+
+        bool    setSoKeepAlive(bool enable,  RuntimeError &e);
+        int     getSoKeepAlive(RuntimeError &e) const;
+        int     getSoKeepAlive() const;
+
+        bool    setTcpNoDelay(int nodelay, RuntimeError &e);
+        int     getTcpNodelay(RuntimeError &e) const;
+        int     getTcpNodelay() const;
     }; // end class StreamSocket
 
     /**

@@ -130,22 +130,14 @@ protected:
 
     void ConnectSocketInvalid(SocketImpl::Ptr &ptrSocket) {
         RuntimeError errinfo;
-        Inet4Address address("127.0.0.1", errinfo);
-        CPPUNIT_ASSERT( errinfo.code() == 0 );
-
-        std::string errstr;
-        CPPUNIT_ASSERT(!ptrSocket->Connect(address, 10024, errstr));
-        cout<<"Connect error: "<<errstr<<endl;
+        CPPUNIT_ASSERT(!ptrSocket->Connect("127.0.0.1", 10024, errinfo));
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_CREATED);
     }
 
     void ConnectSocketLocal22(SocketImpl::Ptr &ptrSocket) {
         RuntimeError errinfo;
-        Inet4Address address("127.0.0.1", errinfo);
-        CPPUNIT_ASSERT( errinfo.code() == 0 );
 
-        std::string errstr;
-        CPPUNIT_ASSERT( ptrSocket->Connect(address, 22, errstr));
+        CPPUNIT_ASSERT( ptrSocket->Connect("127.0.0.1", 22, errinfo));
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_OPEN);
     }
 

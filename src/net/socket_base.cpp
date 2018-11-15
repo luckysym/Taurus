@@ -3,6 +3,7 @@
 
 #include "socket_impl.h"
 #include "socket_opt_impl.h"
+#include "socket_io_impl.h"
 
 #include <fcntl.h>
 
@@ -23,6 +24,12 @@ int SocketBase::fd() const { return m_pImpl->Fd(); }
 bool SocketBase::close(RuntimeError &e) { 
     return m_pImpl->Close(e);
 }
+
+bool SocketBase::bind(const char * host, int port, RuntimeError & errinfo) {
+    return m_pImpl->Bind(host, port, errinfo);
+}
+
+bool SocketBase::isClosed() const { return m_pImpl->State() == SocketImpl::SOCK_STATE_CLOSED; }
 
 std::string SocketBase::getLocalAddress(RuntimeError & e) const {
     return m_pImpl->GetLocalAddress(e);
@@ -136,10 +143,6 @@ bool ServerSocket::create(int domain, RuntimeError &e ) {
     return getImpl().Create( proto, e );
 }
 
-bool ServerSocket::bind(const char * host, int port, RuntimeError & errinfo) {
-    return getImpl().Bind(host, port, errinfo);
-}
-
 bool ServerSocket::listen(int backlog, RuntimeError &errinfo) {
     return getImpl().Listen(backlog, errinfo);
 }
@@ -184,12 +187,27 @@ int ServerSocket::getSoTimeout() const {
     return -1;
 }
 
-
-
 StreamSocket::StreamSocket() : SocketBase("StreamSocket") {}
 StreamSocket::~StreamSocket() {}
 
+bool StreamSocket::create(int domain, RuntimeError &e) {
+    Protocol proto(domain, Protocol::TypeStream, 0);
+    return getImpl().Create(proto, e);
+}
 
+bool StreamSocket::connect(const char *ip, int port, RuntimeError &e) {
+    return getImpl().Connect(ip, port, e);
+}
+
+ssize_t StreamSocket::send(const char *buf, size_t len, RuntimeError &e) {
+    SocketWriterImpl writer(getImpl().Fd(), buf, len);
+    return writer(e);
+}
+
+ssize_t StreamSocket::receive(char *buf, size_t len, RuntimeError &e) {
+    SocketReaderImpl reader(getImpl().Fd(), buf, len);
+    return reader(e);
+}
 
 } // end namespace net
 } // end namespace mercury

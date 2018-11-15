@@ -26,18 +26,25 @@ namespace net {
             SOCK_STATE_OPENING    // 打开中，fd>=0但连接尚未完成，通常用于非阻塞连接INPROGRESS状态。
         };
 
+        enum EnumSockShutState {
+            SOCK_SHUT_NONE  = 0,
+            SOCK_SHUT_READ  = 1,
+            SOCK_SHUT_WRITE = 2
+        };
+
         using Ptr = std::unique_ptr<SocketImpl>;
         
     protected:
         int                             m_fd;
         int                             m_state;
+        int                             m_shutdown;     // shutdown状态
         int                             m_domain;       // address family, AF_INET/AF_INET4
         int                             m_socktype;     // socket type, SOCK_STREAM/SOCK_DGRAM 
 
     public:
         SocketImpl() 
             : m_fd(INVALID_SOCKET), m_state(SOCK_STATE_CLOSED)
-            , m_domain(0), m_socktype(0) {}
+            , m_shutdown(SOCK_SHUT_NONE), m_domain(0), m_socktype(0) {}
 
         SocketImpl(const SocketImpl &other) = delete; 
         SocketImpl(SocketImpl && other);
@@ -54,7 +61,7 @@ namespace net {
         bool  accept(SocketImpl &rSock, RuntimeError &e);
         bool  Bind(const char *host, int port, RuntimeError & errinfo);
         bool  Close(RuntimeError &e);
-        bool  Connect(const InetAddress &address, int port, std::string & errinfo);
+        bool  Connect(const char *ip, int port, RuntimeError & errinfo);
         bool  Create(const Protocol &proto, RuntimeError & errinfo);
         std::string GetLocalAddress(RuntimeError &error) const;
         std::string GetRemoteAddress(RuntimeError &errinfo) const;
@@ -67,6 +74,8 @@ namespace net {
         bool  ShutdownOutput(std::string &errinfo);
         int   State() const { return m_state; }
         std::string ToString() const;
+
+        int   ShutdownState() const { return m_shutdown; }
     }; // end class Socket
 
     inline SocketImpl::SocketImpl(SocketImpl && other) {
@@ -169,16 +178,25 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::Connect(const InetAddress &address, int port, std::string & errinfo) {
-        InetSocketAddress::Ptr ptrRemoteAddr(new InetSocketAddress(address, port));
+    inline bool SocketImpl::Connect(const char *ip, int port, RuntimeError & errinfo) {
+        InetAddress::Ptr ptrAddr(NewInetAddress(m_domain, ip, errinfo));
+        if ( !ptrAddr ) {
+            std::ostringstream oss;
+            oss<<"SocketImpl::Connect() failed, fd: "<<m_fd<<". ";
+            errinfo.push(oss.str().c_str());
+            return false;
+        }
+
+        InetSocketAddress::Ptr ptrRemoteAddr(new InetSocketAddress(*ptrAddr, port));
+        m_state = SOCK_STATE_OPENING;   // 开始连接
         int r = ::connect(m_fd, ptrRemoteAddr->CAddress(), ptrRemoteAddr->CAddressSize());
         if ( r == -1) {
             int e = errno;
             // 非阻塞连接，修改状态，可以根据状态值判断连接是否完成。
-            if ( e == EINPROGRESS ) m_state = SOCK_STATE_OPENING; 
+            if ( e != EINPROGRESS ) m_state = SOCK_STATE_CREATED;  // 连接失败，回到CREATED状态 
             std::ostringstream oss;
-            oss<<"connect() error, fd: "<<m_fd<<", remote: "<<ptrRemoteAddr->ToString();
-            MakeSocketRuntimeError(errinfo, oss);
+            oss<<"connect() error, "<<sockerr<<" fd: "<<m_fd<<", remote: "<<ptrRemoteAddr->ToString();
+            errinfo.set(-1, oss.str().c_str(), "SocketImpl::Connect");
             return false;
         }
         this->m_state = SOCK_STATE_OPEN;
