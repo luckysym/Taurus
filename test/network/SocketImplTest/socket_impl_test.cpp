@@ -23,7 +23,7 @@ class SocketImpTest : public CppUnit::TestFixture {
 
 private:
     SocketImpl::Ptr m_ptrSocketImpl;
-    std::string     m_err;
+    RuntimeError    m_err;
     
 public:
     SocketImpTest() {
@@ -72,7 +72,7 @@ protected:
         cout<<"socket created, fd: "<<ptrSocket->Fd()<<endl;
 
         // 设置socket reuse addr
-        bool bopt;
+        int bopt;
         SocketOptReuseAddr optreuseaddr( ptrSocket->Fd() );
         CPPUNIT_ASSERT( optreuseaddr.Get(&bopt, m_err) );
         CPPUNIT_ASSERT( !bopt );

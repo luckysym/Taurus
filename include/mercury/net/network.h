@@ -270,7 +270,7 @@ namespace net {
         /*
          * 设置和获取SO_REUSEADDR参数。
          */
-        bool setReuseAddress(bool on, RuntimeError &e);
+        bool setReuseAddress(int on, RuntimeError &e);
         int  getReuseAddress(RuntimeError &e) const;
         int  getReuseAddress() const;
 
@@ -330,7 +330,7 @@ namespace net {
         int         getRemotePort(RuntimeError &e) const;
         int         getRemotePort() const;
 
-        bool    setSoKeepAlive(bool enable,  RuntimeError &e);
+        bool    setSoKeepAlive(int enable,  RuntimeError &e);
         int     getSoKeepAlive(RuntimeError &e) const;
         int     getSoKeepAlive() const;
 

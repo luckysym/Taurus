@@ -63,31 +63,23 @@ std::string SocketBase::getLocalEndpoint() const {
     throw e;
 }
 
-bool SocketBase::setReuseAddress(bool on, RuntimeError &e) {
+bool SocketBase::setReuseAddress(int on, RuntimeError &e) {
     SocketOptReuseAddr opt( m_pImpl->Fd() );
-    std::string errstr;
-    bool isok = opt.Set(on, errstr);
-    if ( isok ) return true;
-    e.set(-1, errstr.c_str(), "SocketBase::setReuseAddress");
-    return false;
+    return opt.Set(on, e);
 }
 
 int SocketBase::getReuseAddress(RuntimeError &e) const {
     SocketOptReuseAddr opt(m_pImpl->Fd());
-    std::string errstr;
-    bool value;
-    bool isok = opt.Get(&value, errstr);
-    if ( isok ) return value?1:0;
-    e.set(-1, errstr.c_str(), "SocketBase::getReuseAddress");
-    return -1;
+    int value;
+    if ( opt.Get(&value, e) ) return value?1:0;
+    else return -1;
 }
 
 int SocketBase::getReuseAddress() const {
     SocketOptReuseAddr opt(m_pImpl->Fd());
-    std::string errstr;
-    bool value;
-    bool isok = opt.Get(&value, errstr);
-    if ( isok ) return value?1:0;
+    RuntimeError e;
+    int value;
+    if ( opt.Get(&value, e) ) return value?1:0;
     return -1;
 }
 
@@ -161,30 +153,23 @@ bool ServerSocket::accept(StreamSocket &rSock, RuntimeError &e) {
 
 bool ServerSocket::setSoTimeout(int timeout, RuntimeError &e) {
     SocketOptRecvTimeout opt(this->fd());
-    std::string errstr;
-    bool isok = opt.Set(timeout, errstr);
-    if ( isok ) return true;
-    e.set(-1, errstr.c_str(), "ServerSocket::setSoTimeout");
-    return false;
+    if ( opt.Set(timeout, e) ) return true;
+    else return false;
 }
 
 int ServerSocket::getSoTimeout(RuntimeError &e) const {
     SocketOptRecvTimeout opt(this->fd());
-    int ms = 0;
-    std::string errstr;
-    bool isok = opt.Get(&ms, errstr);
-    if ( isok ) return ms;
-    e.set(-1,errstr.c_str(), "ServerSocket::getSoTimeout");
-    return -1;
+    int ms;
+    if ( opt.Get(&ms, e) ) return ms;
+    else return -1;
 }
 
 int ServerSocket::getSoTimeout() const {
-    std::string errstr;
+    RuntimeError e;
     SocketOptRecvTimeout opt(this->fd());
     int ms = 0;
-    bool isok = opt.Get(&ms, errstr);
-    if ( isok ) return ms;
-    return -1;
+    if ( opt.Get(&ms, e) ) return ms;
+    else return -1;
 }
 
 StreamSocket::StreamSocket() : SocketBase("StreamSocket") {}
@@ -268,6 +253,46 @@ int StreamSocket::getRemotePort(RuntimeError &e) const {
 int StreamSocket::getRemotePort() const {
     RuntimeError e;
     return getImpl().GetRemotePort(e);
+}
+
+bool StreamSocket::setSoKeepAlive(int enable, RuntimeError &e) {
+    SocketOptKeepAlive opt(getImpl().Fd());
+    return opt.Set(enable, e);
+}
+
+int StreamSocket::getSoKeepAlive(RuntimeError &e) const {
+    SocketOptKeepAlive opt(getImpl().Fd());
+    int enable;
+    if ( opt.Get(&enable, e) ) return enable?1:0;
+    else return -1;
+}
+
+int StreamSocket::getSoKeepAlive() const {
+    SocketOptKeepAlive opt(getImpl().Fd());
+    int enable;
+    RuntimeError e;
+    if ( opt.Get(&enable, e) ) return enable?1:0;
+    return -1;  // error
+}
+
+bool StreamSocket::setTcpNoDelay(int nodelay, RuntimeError &e) {
+    SocketOptTcpNoDelay opt( getImpl().Fd());
+    return opt.Set(nodelay, e);
+}
+
+int StreamSocket::getTcpNodelay(RuntimeError &e) const {
+    SocketOptTcpNoDelay opt( getImpl().Fd() ) ;
+    int nodelay;
+    if ( opt.Get(&nodelay, e) ) return nodelay;
+    else return -1;
+}
+
+int StreamSocket::getTcpNodelay() const {
+    RuntimeError e;
+    SocketOptTcpNoDelay opt( getImpl().Fd() ) ;
+    int nodelay;
+    if ( opt.Get(&nodelay, e) ) return nodelay;
+    else return -1;
 }
 
 } // end namespace net
