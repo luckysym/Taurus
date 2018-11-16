@@ -295,5 +295,28 @@ int StreamSocket::getTcpNodelay() const {
     else return -1;
 }
 
+DatagramSocket::DatagramSocket() : SocketBase("DatagramSocket") {}
+
+DatagramSocket::~DatagramSocket() {}
+
+bool DatagramSocket::create(int domain, RuntimeError &e) {
+    Protocol proto(domain, Protocol::TypeDatagram, 0);
+    return getImpl().Create(proto, e);
+}
+
+ssize_t DatagramSocket::send(const DatagramPacket &data, RuntimeError &e) {
+    SocketWriterImpl writer(getImpl().Fd(), data.buffer(), data.length());
+    return writer.Write(*data.endpoint(), e);
+}
+
+ssize_t DatagramSocket::receive(DatagramPacket *data, RuntimeError &e) {
+    char * buffer = data->buffer() + data->length();
+    size_t length = data->capacity() - data->length();
+    SocketReaderImpl reader(getImpl().Fd(), buffer, length);
+    ssize_t r = reader.Read(data->endpoint(), e);
+    if ( r > 0 ) data->setLength(length + r);
+    return r;
+}
+
 } // end namespace net
 } // end namespace mercury

@@ -405,7 +405,7 @@ namespace net {
             return *this;
         }
 
-        InetSocketAddress * getEndpoint() const { return m_endp; }
+        InetSocketAddress * endpoint() const { return m_endp; }
         void setEndpoint(InetSocketAddress *ep) { m_endp = ep; }
 
         char * buffer() const { return m_buf; }
@@ -431,11 +431,9 @@ namespace net {
         virtual ~DatagramSocket();
 
         bool    create(int domain, RuntimeError &e);
-        ssize_t send(const char *buf, size_t len, RuntimeError &e);
-        ssize_t receive(char * buf, size_t len, RuntimeError &e);
-
-        bool    isInputShutdown() const;
-        bool    isOutputShutdown() const;
+        ssize_t send(const DatagramPacket &data, RuntimeError &e);
+        ssize_t receive(DatagramPacket *data, RuntimeError &e);
+        bool    isClosed();
     }; // end class DatagramSocket
 
 }} // end namespace mercury::net

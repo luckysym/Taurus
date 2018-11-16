@@ -42,14 +42,15 @@ public:
         if ( r > 0 )  {
             m_pos += r;
             return r;
-        }
-        else if ( r == 0 ) {
+        } else if ( r == 0 ) {
             std::ostringstream oss;
             oss<<"recv() failed, connection closed by peer. fd: "<<m_fd;
             e.set(-1, oss.str().c_str(), "SocketIoImpl::Read");
             return -1;
         }
         else {
+            int eno = errno;
+            if ( eno == EAGAIN || eno == EWOULDBLOCK) return 0;  // 非阻塞未读到数据
             std::ostringstream oss;
             oss<<"recv() failed, "<<sockerr<<" fd: "<<m_fd;
             e.set(-1, oss.str().c_str(), "SocketIoImpl::Read");
@@ -59,6 +60,24 @@ public:
     ssize_t Read(RuntimeError & e) { 
         size_t limit = m_size - m_pos;
         return this->Read(limit, e);
+    }
+
+    ssize_t Read(InetSocketAddress *endp, RuntimeError &e) {
+        socklen_t addrlen = endp->CAddressSize();
+        ssize_t r = ::recvfrom(m_fd, m_buffer + m_pos, m_size - m_pos, 0, 
+                               endp->CAddress(), &addrlen);
+        if ( r > 0 )  {
+            m_pos += r;
+            return r;
+        }
+        else {
+            int eno = errno;
+            if ( eno == EAGAIN || eno == EWOULDBLOCK) return 0;  // 非阻塞未读到数据
+            std::ostringstream oss;
+            oss<<"recvfrom() failed, "<<sockerr<<" fd: "<<m_fd;
+            e.set(-1, oss.str().c_str(), "SocketIoImpl::Read");
+            return -1;
+        }
     }
 
     /**
@@ -99,8 +118,8 @@ public:
     ssize_t Write(size_t limit, RuntimeError & error) {
         assert(m_pos + limit > m_size);
         ssize_t r = ::send(m_fd, m_buffer + m_pos, limit, 0);
-        if ( r >= 0 )  { m_pos += r;  return r; }  // 读取r个字节(包括0个字节)
-        else {     // 读取失败。包含非阻塞无消息可读
+        if ( r >= 0 )  { m_pos += r;  return r; }  // 发送r个字节(包括0个字节)
+        else {     // 发送失败。包含非阻塞无消息可读
             int en = errno;
             if ( en == EAGAIN || en == EWOULDBLOCK ) return 0;  // 非阻塞时无消息可读
             std::ostringstream oss;
@@ -112,6 +131,20 @@ public:
     ssize_t Write(RuntimeError & e) {
         size_t limit = m_size - m_pos;
         return this->Write(limit, e);
+    }
+
+    ssize_t Write(InetSocketAddress & endp, RuntimeError &e) {
+        ssize_t r = ::sendto(m_fd, m_buffer + m_pos, m_size - m_pos, 0,
+                            endp.CAddress(), endp.CAddressSize());
+        if ( r >= 0 )  { m_pos += r;  return r; }  // 发送r个字节(包括0个字节)
+        else {     // 发送失败。包含非阻塞无消息可读
+            int en = errno;
+            if ( en == EAGAIN || en == EWOULDBLOCK ) return 0;  // 非阻塞时无消息可读
+            std::ostringstream oss;
+            oss<<"sendto() failed, "<<sockerr<<" fd: "<<m_fd<<", remote: "<<endp.ToString();
+            e.set(-1, oss.str().c_str(), "SocketIoImpl::WriteTo");   
+            return -1;
+        }
     }
 
     /// \brief 缓存读取位置归零，或者设置到指定位置。
