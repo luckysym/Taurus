@@ -254,7 +254,7 @@ namespace net {
         int  fd() const;
         bool bind(const char *addr, int port, RuntimeError &errinfo);
         bool close(RuntimeError &e);
-        
+
         bool isClosed() const;
 
         /*
@@ -325,8 +325,8 @@ namespace net {
 
         std::string getRemoteEndpoint(RuntimeError &e) const;
         std::string getRemoteEndpoint() const;
-        std::string getRemoteAddres(RuntimeError &e) const;
-        std::string getRemoteAddres() const;
+        std::string getRemoteAddress(RuntimeError &e) const;
+        std::string getRemoteAddress() const;
         int         getRemotePort(RuntimeError &e) const;
         int         getRemotePort() const;
 

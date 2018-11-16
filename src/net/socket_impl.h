@@ -69,6 +69,7 @@ namespace net {
         int   GetLocalPort(RuntimeError& e) const;
         int   GetRemotePort(RuntimeError &e) const;
         std::string GetLocalEndpoint(RuntimeError &e) const;
+        std::string GetRemoteEndpoint(RuntimeError &e) const;
 
         bool  Listen(int backlog, RuntimeError &errinfo);
         bool  ShutdownInput(RuntimeError &errinfo);
@@ -217,6 +218,22 @@ namespace net {
         std::ostringstream oss;
         oss<<"getsockname() error, "<<sockerr<<" fd:"<<m_fd;
         error.set(-1, oss.str().c_str(), "SocketImpl::GetLocalEndpoint");
+        return std::string();
+    }
+
+    inline std::string SocketImpl::GetRemoteEndpoint(RuntimeError &error ) const {
+        char addrbuf[32];
+        socklen_t addrlen = 32;
+        int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
+        if ( r == 0 ) {
+            InetSocketAddress addr((const struct sockaddr*)addrbuf, addrlen);
+            return addr.ToString();
+        }
+
+        // ERROR HANDLE
+        std::ostringstream oss;
+        oss<<"getpeername() error, "<<sockerr<<" fd:"<<m_fd;
+        error.set(-1, oss.str().c_str(), "SocketImpl::GetRemoteEndpoint");
         return std::string();
     }
 

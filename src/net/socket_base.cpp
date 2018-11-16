@@ -243,5 +243,32 @@ bool StreamSocket::isOutputShutdown() const {
     return getImpl().ShutdownState() & SocketImpl::SOCK_SHUT_WRITE;
 }
 
+std::string StreamSocket::getRemoteEndpoint(RuntimeError &e) const {
+    return getImpl().GetRemoteEndpoint(e);
+}
+
+std::string StreamSocket::getRemoteEndpoint() const {
+    RuntimeError e;
+    return getImpl().GetRemoteEndpoint(e);
+}
+
+std::string StreamSocket::getRemoteAddress(RuntimeError &e) const {
+    return getImpl().GetRemoteAddress(e);
+}
+
+std::string StreamSocket::getRemoteAddress() const {
+    RuntimeError e;
+    return getImpl().GetRemoteAddress(e);
+}
+
+int StreamSocket::getRemotePort(RuntimeError &e) const {
+    return getImpl().GetRemotePort(e);
+}
+
+int StreamSocket::getRemotePort() const {
+    RuntimeError e;
+    return getImpl().GetRemotePort(e);
+}
+
 } // end namespace net
 } // end namespace mercury
