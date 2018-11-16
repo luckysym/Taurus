@@ -18,6 +18,7 @@ add_library( ${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/net/protocol.cpp
     ${PROJECT_SOURCE_DIR}/src/net/inet_address.cpp
     ${PROJECT_SOURCE_DIR}/src/net/socket_base.cpp
+    ${PROJECT_SOURCE_DIR}/src/net/uri.cpp
 )
 
 # 设置项目根目录
