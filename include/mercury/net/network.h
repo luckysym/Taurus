@@ -2,6 +2,7 @@
 #include <mercury/error_info.h>
 
 #include <cstdint>
+#include <cassert>
 #include <string>
 #include <memory>
 #include <vector>
@@ -339,10 +340,102 @@ namespace net {
         int     getTcpNodelay() const;
     }; // end class StreamSocket
 
+    /** 
+     * 数据报文对象，用于无连接的Socket的数据发送。
+     */ 
+    class DatagramPacket {
+    private:
+        char *       m_buf;
+        size_t       m_len;
+        size_t       m_cap;
+        InetSocketAddress * m_endp;
+
+    public:
+        DatagramPacket() : m_buf(nullptr), m_len(0), m_cap(0), m_endp(nullptr) {}
+
+        DatagramPacket(char * buf, size_t len) : m_buf(buf), m_len(len), m_cap(len), m_endp(nullptr) {}
+        
+        DatagramPacket(char * buf, size_t len, InetSocketAddress *endp)
+            : m_buf(buf), m_len(len), m_cap(len), m_endp(endp) {}
+        
+        DatagramPacket(char * buf, size_t len, size_t cap)
+            : m_buf(buf), m_len(len), m_cap(cap), m_endp(nullptr) {}
+
+        DatagramPacket(char * buf, size_t len, size_t cap, InetSocketAddress *endp)
+            : m_buf(buf), m_len(len), m_cap(cap), m_endp(nullptr) {}
+
+        DatagramPacket(const DatagramPacket &other) 
+            : m_buf(other.m_buf), m_len(other.m_len), m_cap(other.m_cap), m_endp(other.m_endp) {}
+
+        DatagramPacket(DatagramPacket &&other)
+            : m_buf(other.m_buf), m_len(other.m_len), m_cap(other.m_cap), m_endp(other.m_endp) 
+        {
+            other.m_buf = nullptr;
+            other.m_endp = nullptr;
+            other.m_len = other.m_cap  = 0;
+        }
+
+        ~DatagramPacket() {
+            m_buf = nullptr;
+            m_endp = nullptr;
+            m_len = m_cap  = 0;
+        }
+
+        DatagramPacket & operator=(const DatagramPacket &other) {
+            if ( this != &other ) {
+                m_buf = other.m_buf;
+                m_len = other.m_len;
+                m_cap = other.m_cap;
+                m_endp = other.m_endp;
+            }
+            return *this;
+        }
+
+        DatagramPacket & operator=(DatagramPacket &&other) {
+            if ( this != &other ) {
+                m_buf = other.m_buf;
+                m_len = other.m_len;
+                m_cap = other.m_cap;
+                m_endp = other.m_endp;
+
+                other.m_buf = nullptr;
+                other.m_endp = nullptr;
+                other.m_len = other.m_cap  = 0;
+            }
+            return *this;
+        }
+
+        InetSocketAddress * getEndpoint() const { return m_endp; }
+        void setEndpoint(InetSocketAddress *ep) { m_endp = ep; }
+
+        char * buffer() const { return m_buf; }
+        size_t length() const { return m_len; }
+        size_t capacity() const { return m_cap; }
+
+        void setBuffer(char * buf, size_t len, size_t cap) {
+            m_buf = buf;
+            m_len = len;
+            m_cap = cap;
+        }
+
+        void setLength(size_t len) { assert(len <= m_cap);  m_len = len; }
+
+    }; // end class DatagramPacket
+
     /**
      * @brief 面向数据报文的Socket.
      */
     class DatagramSocket : public SocketBase  {
+    public:
+        DatagramSocket();
+        virtual ~DatagramSocket();
+
+        bool    create(int domain, RuntimeError &e);
+        ssize_t send(const char *buf, size_t len, RuntimeError &e);
+        ssize_t receive(char * buf, size_t len, RuntimeError &e);
+
+        bool    isInputShutdown() const;
+        bool    isOutputShutdown() const;
     }; // end class DatagramSocket
 
 }} // end namespace mercury::net
