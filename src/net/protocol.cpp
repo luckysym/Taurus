@@ -23,7 +23,7 @@ namespace net {
     const int Protocol::TypeStream  = SOCK_STREAM;
     const int Protocol::TypeDatagram = SOCK_DGRAM;
 
-    std::string Protocol::ToString() const {
+    std::string Protocol::str() const {
         std::ostringstream oss;
         if ( m_domain == AF_INET ) oss<<"inet:";
         else if ( m_domain == AF_INET6 ) oss<<"inet6:";

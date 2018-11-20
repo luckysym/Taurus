@@ -145,18 +145,18 @@ namespace net {
         if ( m_fd != INVALID_SOCKET ) throw std::runtime_error("socket already created, cannot create again");
 
         // 创建socket
-        int fd = ::socket(proto.Domain(), proto.Type(), proto.Proto());
+        int fd = ::socket(proto.domain(), proto.type(), proto.proto());
         if ( fd == INVALID_SOCKET ) {
             std::ostringstream oss;
-            oss<<"socket() error, "<<sockerr<<" protocol: "<<proto.ToString();
+            oss<<"socket() error, "<<sockerr<<" protocol: "<<proto.str();
             errinfo.set(-1, oss.str().c_str(), "SocketImpl::Create");
             return false;
         }
 
         m_fd = fd;
         m_state = SOCK_STATE_CREATED;
-        m_domain = proto.Domain();
-        m_socktype = proto.Type();
+        m_domain = proto.domain();
+        m_socktype = proto.type();
         return true;
     }
 

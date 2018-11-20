@@ -44,11 +44,11 @@ namespace net {
             
         ~Protocol() {}
 
-        int Domain() const { return m_domain; }    ///< 获取并返回address family
-        int Type() const { return m_type; }      ///< 获取并返回socket type
-        int Proto() const { return m_proto; }     ///< 获取并返回socket protocol value
+        int domain() const { return m_domain; }    ///< 获取并返回address family
+        int type() const { return m_type; }      ///< 获取并返回socket type
+        int proto() const { return m_proto; }     ///< 获取并返回socket protocol value
 
-        std::string ToString() const;
+        std::string str() const;
     public:
         static const Protocol  Tcp4;   ///< Tcp v4协议类
         static const Protocol  Udp4;   ///< Upd v4协议类
