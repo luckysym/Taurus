@@ -7,18 +7,13 @@ namespace net {
 class URLParserImpl;
 
 struct URL::URL_Impl {
+    std::string m_string;
     std::string m_schema;
     std::string m_host;
-    int         m_port;
-    mutable std::string m_string;
+    int         m_port {-1};
+    
 
-    static const int ParseState_Init = 0;
-    static const int ParseState_Schema = 1;
-
-
-    bool is_opaque() const { return true; }
-    void define_string() const;
-    std::string to_string(const char *schema, const char *host, int port);
+    void define_string();
     bool parse(const char *str, RuntimeError &e);
 
 private:
@@ -37,12 +32,15 @@ URL & URL::operator=(const URL &other) { *m_pImpl = *other.m_pImpl; }
 URL & URL::operator=(URL &&other) { *m_pImpl = std::move(*other.m_pImpl);}
 
 URL::URL(const char * str, RuntimeError &e) : URL() {
-    m_pImpl->parse(str, e);
+    bool isok = m_pImpl->parse(str, e);
+    if ( isok ) m_pImpl->m_string = str;
 }
 
-URL::URL(const char *schema, const char *host, int port, RuntimeError &e) : URL() {
-    std::string str = m_pImpl->to_string(schema, host, port);
-    m_pImpl->parse(str.c_str(), e);
+URL::URL(const char *schema, const char *host, int port) : URL() {
+    m_pImpl->m_schema.assign(schema);
+    m_pImpl->m_host.assign(host);
+    m_pImpl->m_port = port;
+    m_pImpl->define_string();
 }
 
 const char * URL::schema() const { return m_pImpl->m_schema.c_str(); }
@@ -50,43 +48,27 @@ const char * URL::host() const { return m_pImpl->m_host.c_str(); }
 int URL::port() const { return m_pImpl->m_port; }
 
 std::string URL::str() const {
-    m_pImpl->define_string();
     return m_pImpl->m_string;
 }
 
-void URL::URL_Impl::define_string() const {
+void URL::URL_Impl::define_string() {
     if ( !m_string.empty() ) return ;
 
     std::ostringstream oss;
     if ( !m_schema.empty() ) oss<<m_schema<<":";
-    if ( this->is_opaque() ) {
-        oss<<this->m_schema_spec_part;
-    } else {
-        if ( !m_host.empty() ) {
-            oss<<"//";
-        }
-        bool needbrackets = m_host.find_first_of(':') != std::string::npos &&
-                            m_host[0] != '[' && m_host[m_host.length() - 1] != ']';
-        if ( needbrackets ) oss<<'[';
-        oss<<m_host;
-        if ( needbrackets ) oss<<']';
-        if ( m_port >= 0 ) oss<<':'<<m_port;
+    if ( !m_host.empty() ) {
+        oss<<"//";
     }
+    bool needbrackets = m_host.find_first_of(':') != std::string::npos &&
+                        m_host[0] != '[' && m_host[m_host.length() - 1] != ']';
+    if ( needbrackets ) oss<<'[';
+    oss<<m_host;
+    if ( needbrackets ) oss<<']';
+    if ( m_port >= 0 ) oss<<':'<<m_port;
     m_string = oss.str();
 }
 
-std::string URL::URL_Impl::to_string(const char *schema, const char *host, int port) {
-    std::ostringstream oss;
-    if ( schema && schema[0] != '\0') oss<<schema<<':';
-    if ( host && host[0] != '\0' ) {
-        oss<<"//"<<host;
-        if ( port >= 0 ) oss<<':'<<port;
-    }
-    return oss.str();
-}
-
 bool URL::URL_Impl::parse(const char * str, RuntimeError &e) {
-    int state = ParseState_Init;   // init
     bool isok = true;
     std::ostringstream oss;
     size_t p0 = 0;
@@ -114,7 +96,7 @@ ssize_t URL::URL_Impl::parse_schema(const char *str, size_t pos, RuntimeError &e
     size_t n = 0;
     while ( str[pos + n] != '\0') {
         if ( str[pos + n] == ':') {
-            if ( n > 0 ) this->m_schema.assign(str + pos, n - 1);
+            if ( n > 0 ) this->m_schema.assign(str + pos, n);
             return n;
         }
         ++n;
@@ -127,15 +109,19 @@ ssize_t URL::URL_Impl::parse_schema(const char *str, size_t pos, RuntimeError &e
 }
 
 ssize_t URL::URL_Impl::parse_host(const char *str, size_t pos, RuntimeError &e) {
+    int in_bracket = 0;
     if ( str[pos] == '/' && str[pos + 1] == '/') {
         size_t n = 2;
         while ( str[pos + n] != '\0') {
-            if ( str[pos + n] == ':' || str[pos + n] == '/') {
-                break;
+            char ch = str[pos + n];
+            if ( ch == '[') ++in_bracket;  // [包含级数递增]
+            else if ( ch == ']') --in_bracket;  // [包含级数递减]
+            else if ( str[pos + n] == ':' || str[pos + n] == '/' ) {
+                if ( !in_bracket ) break;
             }
             ++n;
         }
-        this->m_host.assign(str + pos + 2, n - 2 -1);
+        this->m_host.assign(str + pos + 2, n - 2);
         return n;
     }
 
@@ -149,7 +135,7 @@ ssize_t URL::URL_Impl::parse_host(const char *str, size_t pos, RuntimeError &e) 
 ssize_t URL::URL_Impl::parse_port(const char * str, size_t pos, RuntimeError &e) {
     size_t n = 0;
     while ( str[pos + n] >= 0 && str[pos + n] <= '9') ++n;
-    if ( n > 0 ) {   
+    if ( n > 0 ) {
         this->m_port = atoi(str + pos);
         return n;
     }

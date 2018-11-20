@@ -445,7 +445,7 @@ namespace net {
     public:
         URL();
         URL(const char * str, RuntimeError &e);
-        URL(const char *schema, const char *host, int port, RuntimeError &e);
+        URL(const char *schema, const char *host, int port);
         URL(const URL &other);
         URL(URL && other);
         ~URL();

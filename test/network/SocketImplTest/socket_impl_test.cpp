@@ -166,10 +166,59 @@ protected:
     }
 }; // end class SocketImpTest
 
+class URL_Test : public CppUnit::TestFixture {
+    CPPUNIT_TEST_SUITE( URL_Test );
+    CPPUNIT_TEST( testURL );
+    CPPUNIT_TEST_SUITE_END(); 
+    
+public:
+    void setUp () { }
+    void tearDown() { }
 
+    void testURL() {
+        URL url;
+        CPPUNIT_ASSERT(url.schema()[0] == '\0');
+        CPPUNIT_ASSERT(url.host()[0] == '\0');
+        CPPUNIT_ASSERT(url.port() == -1);
+
+        URL url1("http", "192.168.1.1", 8080);
+        CPPUNIT_ASSERT(0 == strcmp("http", url1.schema()));
+        CPPUNIT_ASSERT(0 == strcmp("192.168.1.1", url1.host()));
+        CPPUNIT_ASSERT(url1.port() == 8080);
+        cout<<url1.str()<<endl;
+
+        RuntimeError e;
+        URL url2("http://192.168.1.2:8080", e);
+        CPPUNIT_ASSERT(0 == e.code());
+        CPPUNIT_ASSERT(0 == strcmp("http", url2.schema()));
+        CPPUNIT_ASSERT(0 == strcmp("192.168.1.2", url2.host()));
+        CPPUNIT_ASSERT(url2.port() == 8080);
+        cout<<url2.str()<<endl;
+
+        URL url3("http", "fe80::9069:38e5:2d7:8ed3", -1);
+        CPPUNIT_ASSERT(0 == strcmp("http", url3.schema()));
+        CPPUNIT_ASSERT(0 == strcmp("fe80::9069:38e5:2d7:8ed3", url3.host()));
+        CPPUNIT_ASSERT(url3.port() == -1);
+        cout<<url3.str()<<endl;
+
+        URL url4("http", "[fe80::9069:38e5:2d7:8ed4]", 0);
+        CPPUNIT_ASSERT(0 == strcmp("http", url4.schema()));
+        CPPUNIT_ASSERT(0 == strcmp("[fe80::9069:38e5:2d7:8ed4]", url4.host()));
+        CPPUNIT_ASSERT(url4.port() == 0);
+        cout<<url4.str()<<endl;
+
+        e.clear();
+        URL url5("http://[fe80::9069:38e5:2d7:8ed4]:9090", e);
+        CPPUNIT_ASSERT(0 == strcmp("http", url5.schema()));
+        CPPUNIT_ASSERT(0 == strcmp("[fe80::9069:38e5:2d7:8ed4]", url5.host()));
+        CPPUNIT_ASSERT(url5.port() == 9090);
+        cout<<url5.str()<<endl;
+    }
+};
 
 // CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( SocketImpTest, "alltest" );
-CPPUNIT_TEST_SUITE_REGISTRATION( SocketImpTest );
+// CPPUNIT_TEST_SUITE_REGISTRATION( SocketImpTest );
+CPPUNIT_TEST_SUITE_REGISTRATION( URL_Test );
 
 int main(int argc, char **argv) 
 {
