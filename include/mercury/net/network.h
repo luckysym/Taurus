@@ -436,28 +436,28 @@ namespace net {
         bool    isClosed();
     }; // end class DatagramSocket
 
-    class URI final {
+    class URL final {
     public:
-        struct URI_Impl;
+        struct URL_Impl;
     private:
-        struct URI_Impl * m_pImpl;
+        struct URL_Impl * m_pImpl;
 
     public:
-        URI();
-        URI(const char * str, RuntimeError &e);
-        URI(const char *schema, const char *host, int port, RuntimeError &e);
-        URI(const URI &other);
-        URI(URI && other);
-        ~URI();
+        URL();
+        URL(const char * str, RuntimeError &e);
+        URL(const char *schema, const char *host, int port, RuntimeError &e);
+        URL(const URL &other);
+        URL(URL && other);
+        ~URL();
 
-        URI & operator=(const URI &other);
-        URI & operator=(URI &&other);
+        URL & operator=(const URL &other);
+        URL & operator=(URL &&other);
 
         const char * schema() const;
         const char * host() const;
         int          port() const;
 
         std::string str() const;
-    }; // end class URI
+    }; // end class URL
 
 }} // end namespace mercury::net
