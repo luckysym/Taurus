@@ -86,33 +86,33 @@ namespace net {
         virtual ~InetAddress();
         virtual bool operator==(const InetAddress& addr) const;
 
-        int  Domain() const { return m_domain; }
+        int  domain() const { return m_domain; }
 
         /// 获取IP地址转化为可读的文本格式。
-        std::string  GetHostAddress() const;
+        std::string  hostaddr() const;
 
         /// 获取IP地址对应的主机名，通常需要查询系统hosts文件或者域名服务。
-        std::string GetHostName() const;
+        std::string hostname() const;
 
         /// 获取IP地址的字节数组。
-        size_t GetAddress(void * buffer, size_t n) const; 
+        size_t address(void * buffer, size_t n) const; 
 
     public:
         /// 是否本地任意地址。
-        virtual bool IsAnyLocalAddress() const = 0;
+        virtual bool is_anylocal() const = 0;
 
         /// 是否回环地址。
-        virtual bool IsLoopbackAddress() const = 0;
+        virtual bool is_loopback() const = 0;
 
-        /// 转为字符串，格式 domain:address
-        virtual std::string ToString() const = 0;
+        /// 转为字符串，格式 domain://hostaddr
+        virtual std::string str() const = 0;
 
     public:
         /// 获取指定主机名的所有关联IP地址，返回实际获取的地址数
-        static ssize_t GetAllByName(Vector & vecAddr, const char *hostname);
+        static ssize_t get_all_by_name(Vector & vecAddr, const char *hostname);
 
         /// 获取所有本地地址（不包括回环地址），返回实际获取的地址数。
-        static ssize_t GetLocalHost(Vector & vecAddr);
+        static ssize_t get_localhost(Vector & vecAddr);
     }; // end class InetAddress
 
     /**
@@ -137,13 +137,13 @@ namespace net {
 
     public:  // 继承自InetAddress
         /// 是否本地任意地址。
-        virtual bool IsAnyLocalAddress() const;
+        virtual bool is_anylocal() const;
 
         /// 是否回环地址。
-        virtual bool IsLoopbackAddress() const;
+        virtual bool is_loopback() const;
 
         /// 转为字符串，格式: inet4:xxx.xxx.xxx.xxx
-        virtual std::string ToString() const;
+        virtual std::string str() const;
     }; // end class Inet4Address
 
     /**
@@ -167,13 +167,13 @@ namespace net {
 
     public:  // 继承自InetAddress
         /// 是否本地任意地址。
-        virtual bool IsAnyLocalAddress() const ;
+        virtual bool is_anylocal() const ;
 
         /// 是否回环地址。
-        virtual bool IsLoopbackAddress() const;
+        virtual bool is_loopback() const;
 
         /// 转为字符串，格式: inet4:[xxxx:xxxx::xxxx]
-        virtual std::string ToString() const;
+        virtual std::string str() const;
 
     }; // end class Inet6Address
 
@@ -187,10 +187,11 @@ namespace net {
     public:
         virtual ~SocketAddress() { }
 
-        virtual int Domain() const = 0;
-        virtual struct sockaddr * CAddress() = 0;
-        virtual const struct sockaddr * CAddress() const = 0;
-        virtual socklen_t CAddressSize() const = 0;
+        virtual int domain() const = 0;
+        virtual struct sockaddr * caddr() = 0;
+        virtual const struct sockaddr * caddr() const = 0;
+        virtual socklen_t caddrsize() const = 0;
+        virtual std::string str() const = 0;
     }; // end class SocketAddress
 
     /**
@@ -214,17 +215,16 @@ namespace net {
         InetSocketAddress & operator=(const InetSocketAddress &other);
         InetSocketAddress & operator=(InetSocketAddress &&other);
         
-        int GetPort() const;
-        const InetAddress * GetAddress() const;
-        InetAddress * GetAddress();
-
-        std::string ToString() const;
+        int port() const;
+        const InetAddress * address() const;
+        InetAddress * address();
 
     public:
-        virtual int Domain() const ;
-        virtual struct sockaddr * CAddress() ;
-        virtual const struct sockaddr * CAddress() const;
-        virtual socklen_t CAddressSize() const ;
+        virtual int domain() const ;
+        virtual struct sockaddr * caddr() ;
+        virtual const struct sockaddr * caddr() const;
+        virtual socklen_t caddrsize() const ;
+        virtual std::string str() const;
     }; // end class InetSocketAddress
 
     class SocketImpl;
@@ -246,8 +246,8 @@ namespace net {
         SocketBase& operator = (const SocketBase & other) = delete;
         
     public:
-        SocketImpl & getImpl() { return *m_pImpl; }
-        const SocketImpl & getImpl() const { return *m_pImpl; }
+        SocketImpl & impl() { return *m_pImpl; }
+        const SocketImpl & impl() const { return *m_pImpl; }
 
     public:
         virtual ~SocketBase();
@@ -256,31 +256,31 @@ namespace net {
         bool bind(const char *addr, int port, RuntimeError &errinfo);
         bool close(RuntimeError &e);
 
-        bool isClosed() const;
+        bool is_closed() const;
 
         /*
          * 获取本地地址端口。
          */
-        std::string getLocalAddress(RuntimeError & e) const;
-        std::string getLocalAddress() const;
-        int         getLocalPort(RuntimeError & e) const;
-        int         getLocalPort() const;
-        std::string getLocalEndpoint(RuntimeError &e) const;
-        std::string getLocalEndpoint() const;
+        std::string local_addr(RuntimeError & e) const;
+        std::string local_addr() const;
+        int         local_port(RuntimeError & e) const;
+        int         local_port() const;
+        std::string local(RuntimeError &e) const;
+        std::string local() const;
 
         /*
          * 设置和获取SO_REUSEADDR参数。
          */
-        bool setReuseAddress(int on, RuntimeError &e);
-        int  getReuseAddress(RuntimeError &e) const;
-        int  getReuseAddress() const;
+        bool set_reuse_addr(int on, RuntimeError &e);
+        int  get_reuse_addr(RuntimeError &e) const;
+        int  get_reuse_addr() const;
 
         /*
-         * 设置和获取Socket阻塞模式。getBlockMode返回0表示非阻塞，返回1表示阻塞，-1表示操作失败。
+         * 设置和获取Socket阻塞模式。get_block_mode返回0表示非阻塞，返回1表示阻塞，-1表示操作失败。
          */
-        bool setBlockMode(bool bBlocked, RuntimeError &e);
-        int  getBlockMode(RuntimeError &e) const;
-        int  getBlockMode() const;
+        bool set_block_mode(bool bBlocked, RuntimeError &e);
+        int  get_block_mode(RuntimeError &e) const;
+        int  get_block_mode() const;
     }; // class SocketBase
 
     /**
@@ -297,9 +297,9 @@ namespace net {
         bool  create(int domain, RuntimeError &e);
         bool  listen(int backlog, RuntimeError &errinfo);
         
-        bool  setSoTimeout(int timeout, RuntimeError &e);
-        int   getSoTimeout(RuntimeError &e) const;
-        int   getSoTimeout() const;
+        bool  set_so_timeout(int timeout, RuntimeError &e);
+        int   get_so_timeout(RuntimeError &e) const;
+        int   get_so_timeout() const;
     }; // end class ServerSocket
 
     /**
@@ -314,30 +314,30 @@ namespace net {
         bool    connect(const char *ip, int port, RuntimeError &e);
         ssize_t send(const char *buf, size_t len, RuntimeError &e);
         ssize_t receive(char * buf, size_t len, RuntimeError &e);
-        bool    shutdownInput(RuntimeError &e);
-        bool    shutdownInput();
-        bool    shutdownOutput(RuntimeError &e);
-        bool    shutdownOutput();
+        bool    shutdown_input(RuntimeError &e);
+        bool    shutdown_input();
+        bool    shutdown_Output(RuntimeError &e);
+        bool    shutdown_Output();
 
-        bool    isConnected() const;  // 是否已完成连接
-        bool    isConnecting() const; // 是否正在连接，连接方法执行和连接完成之间的状态
-        bool    isInputShutdown() const;
-        bool    isOutputShutdown() const;
+        bool    is_connected() const;  // 是否已完成连接
+        bool    is_connecting() const; // 是否正在连接，连接方法执行和连接完成之间的状态
+        bool    is_input_shutdown() const;
+        bool    is_output_shutdown() const;
 
-        std::string getRemoteEndpoint(RuntimeError &e) const;
-        std::string getRemoteEndpoint() const;
-        std::string getRemoteAddress(RuntimeError &e) const;
-        std::string getRemoteAddress() const;
-        int         getRemotePort(RuntimeError &e) const;
-        int         getRemotePort() const;
+        std::string remote(RuntimeError &e) const;
+        std::string remote() const;
+        std::string remote_addr(RuntimeError &e) const;
+        std::string remote_addr() const;
+        int         remote_port(RuntimeError &e) const;
+        int         remote_port() const;
 
-        bool    setSoKeepAlive(int enable,  RuntimeError &e);
-        int     getSoKeepAlive(RuntimeError &e) const;
-        int     getSoKeepAlive() const;
+        bool    set_so_keepalive(int enable,  RuntimeError &e);
+        int     get_so_keepalive(RuntimeError &e) const;
+        int     get_so_keepalive() const;
 
-        bool    setTcpNoDelay(int nodelay, RuntimeError &e);
-        int     getTcpNodelay(RuntimeError &e) const;
-        int     getTcpNodelay() const;
+        bool    set_tcp_nodelay(int nodelay, RuntimeError &e);
+        int     get_tcp_nodelay(RuntimeError &e) const;
+        int     get_tcp_nodelay() const;
     }; // end class StreamSocket
 
     /** 
@@ -412,13 +412,13 @@ namespace net {
         size_t length() const { return m_len; }
         size_t capacity() const { return m_cap; }
 
-        void setBuffer(char * buf, size_t len, size_t cap) {
+        void setbuf(char * buf, size_t len, size_t cap) {
             m_buf = buf;
             m_len = len;
             m_cap = cap;
         }
 
-        void setLength(size_t len) { assert(len <= m_cap);  m_len = len; }
+        void setbuflen(size_t len) { assert(len <= m_cap);  m_len = len; }
 
     }; // end class DatagramPacket
 
@@ -433,7 +433,7 @@ namespace net {
         bool    create(int domain, RuntimeError &e);
         ssize_t send(const DatagramPacket &data, RuntimeError &e);
         ssize_t receive(DatagramPacket *data, RuntimeError &e);
-        bool    isClosed();
+        bool    is_closed();
     }; // end class DatagramSocket
 
     class URL final {

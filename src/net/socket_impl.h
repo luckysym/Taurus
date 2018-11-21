@@ -75,7 +75,7 @@ namespace net {
         bool  ShutdownInput(RuntimeError &errinfo);
         bool  ShutdownOutput(RuntimeError &errinfo);
         int   State() const { return m_state; }
-        std::string ToString() const;
+        std::string str() const;
 
         int   ShutdownState() const { return m_shutdown; }
     }; // end class Socket
@@ -170,10 +170,10 @@ namespace net {
         }
 
         InetSocketAddress::Ptr ptrSockAddr( new InetSocketAddress(*ptrAddr, port) );
-        int r = ::bind(m_fd, ptrSockAddr->CAddress(), ptrSockAddr->CAddressSize());
+        int r = ::bind(m_fd, ptrSockAddr->caddr(), ptrSockAddr->caddrsize());
         if ( r == -1 ) {
             std::ostringstream oss;
-            oss<<"bind() error, fd: "<<m_fd<<". "<<"local address: "<<ptrSockAddr->ToString()<<", "<<sockerr;
+            oss<<"bind() error, fd: "<<m_fd<<". "<<"local address: "<<ptrSockAddr->str()<<", "<<sockerr;
             errinfo.set(-1, oss.str().c_str(), "SocketImpl::Bind");
             return false;
         }
@@ -191,13 +191,13 @@ namespace net {
 
         InetSocketAddress::Ptr ptrRemoteAddr(new InetSocketAddress(*ptrAddr, port));
         m_state = SOCK_STATE_OPENING;   // 开始连接
-        int r = ::connect(m_fd, ptrRemoteAddr->CAddress(), ptrRemoteAddr->CAddressSize());
+        int r = ::connect(m_fd, ptrRemoteAddr->caddr(), ptrRemoteAddr->caddrsize());
         if ( r == -1) {
             int e = errno;
             // 非阻塞连接，修改状态，可以根据状态值判断连接是否完成。
             if ( e != EINPROGRESS ) m_state = SOCK_STATE_CREATED;  // 连接失败，回到CREATED状态 
             std::ostringstream oss;
-            oss<<"connect() error, "<<sockerr<<" fd: "<<m_fd<<", remote: "<<ptrRemoteAddr->ToString();
+            oss<<"connect() error, "<<sockerr<<" fd: "<<m_fd<<", remote: "<<ptrRemoteAddr->str();
             errinfo.set(-1, oss.str().c_str(), "SocketImpl::Connect");
             return false;
         }
@@ -211,7 +211,7 @@ namespace net {
         int r = ::getsockname(m_fd, (struct sockaddr*)addrbuf, &addrlen);
         if ( r == 0 ) {
             InetSocketAddress addr((const struct sockaddr*)addrbuf, addrlen);
-            return addr.ToString();
+            return addr.str();
         }
 
         // ERROR HANDLE
@@ -227,7 +227,7 @@ namespace net {
         int r = ::getpeername(m_fd, (struct sockaddr*)addrbuf, &addrlen);
         if ( r == 0 ) {
             InetSocketAddress addr((const struct sockaddr*)addrbuf, addrlen);
-            return addr.ToString();
+            return addr.str();
         }
 
         // ERROR HANDLE
@@ -250,11 +250,11 @@ namespace net {
         if ( m_domain == Protocol::DomainInet4) {
             struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
             Inet4Address addr(paddr->sin_addr.s_addr);
-            return addr.ToString();
+            return addr.str();
         } else if ( m_domain == Protocol::DomainInet6) {
             struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
             Inet6Address addr(paddr->sin6_addr.s6_addr, 16);
-            return addr.ToString();
+            return addr.str();
         } else  {
             std::ostringstream oss;
             oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;
@@ -324,11 +324,11 @@ namespace net {
         if ( m_domain == Protocol::DomainInet4) {
             struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
             Inet4Address addr(paddr->sin_addr.s_addr);
-            return addr.ToString();
+            return addr.str();
         } else if ( m_domain == Protocol::DomainInet6) {
             struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
             Inet6Address addr(paddr->sin6_addr.s6_addr, 16);
-            return addr.ToString();
+            return addr.str();
         } else  {
             std::ostringstream oss;
             oss<<"bad domain, fd: "<<m_fd<<", domain: "<<m_domain;

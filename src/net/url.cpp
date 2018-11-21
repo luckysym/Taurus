@@ -41,6 +41,8 @@ URL::URL(const char *schema, const char *host, int port) : URL() {
     m_pImpl->m_host.assign(host);
     m_pImpl->m_port = port;
     m_pImpl->define_string();
+
+    printf("sizeof(URL_Impl) = %ld\n", sizeof(URL_Impl)); 
 }
 
 const char * URL::schema() const { return m_pImpl->m_schema.c_str(); }
