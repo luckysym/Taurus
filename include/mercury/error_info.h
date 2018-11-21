@@ -32,9 +32,9 @@ public:
     void merge(RuntimeError &errinfo) throw();
     void clear() throw();
 
-    std::string toString() const throw();
+    std::string str() const throw();
     template <class OutStream>
-    void printStack(OutStream & os);
+    void printstack(OutStream & os);
 }; // end class RuntimeError
 
 inline RuntimeError::RuntimeError() : m_code(0) {}
@@ -99,7 +99,7 @@ inline void RuntimeError::clear() throw() {
     m_stack.clear();
 }
 
-inline std::string RuntimeError::toString() const throw() {
+inline std::string RuntimeError::str() const throw() {
     std::ostringstream oss;
     oss<<"error code: "<<m_code<<", message: "<<m_message<<std::endl;
     oss<<"stack: "<<std::endl;
@@ -111,7 +111,7 @@ inline std::string RuntimeError::toString() const throw() {
 }
 
 template <class OutStream>
-inline void RuntimeError::printStack(OutStream & os) {
+inline void RuntimeError::printstack(OutStream & os) {
     os<<"error code: "<<m_code<<", message: "<<m_message<<std::endl;
     os<<"stack: "<<std::endl;
     auto it = m_stack.begin();
