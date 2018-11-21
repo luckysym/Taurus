@@ -1,6 +1,6 @@
 #include "../../../src/net/socket_impl.h"
 #include "../../../src/net/socket_opt_impl.h"
-
+#include <mercury/nio/buffer.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/TestCaller.h>
