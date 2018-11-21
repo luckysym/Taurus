@@ -184,21 +184,21 @@ public:
     double       get_double();
     double       get_double(size_t idx) const;
 
-    size_t       put(char ch);
-    size_t       put(size_t idx, char ch);
-    size_t       put(const char *array, size_t len);
-    size_t       put(size_t idx, const char *array, size_t len);
+    void         put(char ch);
+    void         put(size_t idx, char ch);
+    void         put(const char *array, size_t len);
+    void         put(size_t idx, const char *array, size_t len);
 
-    bool         put_int16(int16_t value);
-    bool         put_int16(size_t idx, int16_t value);
-    bool         put_int32(int32_t value);
-    bool         put_int32(size_t idx, int32_t value);
-    bool         put_int64(int64_t value);
-    bool         put_int64(size_t idx, int64_t value);
-    bool         put_float(float value);
-    bool         put_float(size_t idx, float value);
-    bool         put_double(double value);
-    bool         put_double(size_t idx, double value);
+    void         put_int16(int16_t value);
+    void         put_int16(size_t idx, int16_t value);
+    void         put_int32(int32_t value);
+    void         put_int32(size_t idx, int32_t value);
+    void         put_int64(int64_t value);
+    void         put_int64(size_t idx, int64_t value);
+    void         put_float(float value);
+    void         put_float(size_t idx, float value);
+    void         put_double(double value);
+    void         put_double(size_t idx, double value);
 
 }; // end class ByteBuffer
 
