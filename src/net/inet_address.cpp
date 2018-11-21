@@ -346,7 +346,7 @@ public:
 
     void str(std::string &str) const {
         std::ostringstream oss;
-        if ( !m_ptrAddress ) oss<<"inet4:*:";
+        if ( !m_ptrAddress ) oss<<"inet4://0.0.0.0:";
         else oss<<m_ptrAddress->str();
         oss<<':'<<m_port;
         str = oss.str();
