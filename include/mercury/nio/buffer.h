@@ -173,16 +173,16 @@ public:
     size_t       get(char *array, size_t len);
     size_t       get(size_t idx, char *array, size_t len) const;
     
-    int16_t      get_int16() ;
-    int16_t      get_int16(size_t idx);
+    int16_t      get_int16();
+    int16_t      get_int16(size_t idx) const;
     int32_t      get_int32();
-    int32_t      get_int32(size_t idx);
+    int32_t      get_int32(size_t idx) const;
     int64_t      get_int64();
-    int64_t      get_int64(size_t idx);
+    int64_t      get_int64(size_t idx) const;
     float        get_float();
-    float        get_float(size_t idx);
+    float        get_float(size_t idx) const;
     double       get_double();
-    double       get_double(size_t idx);
+    double       get_double(size_t idx) const;
 
     size_t       put(char ch);
     size_t       put(size_t idx, char ch);
