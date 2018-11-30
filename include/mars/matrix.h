@@ -264,6 +264,13 @@ struct Matop {
 
     // 转置矩阵计算
     static TMatrix<T> transpose(const TMatrix<T> &m);
+
+    // 矩阵行交换。在原矩阵上执行r1行与r2行的位置交换，返回原矩阵的引用。
+    static TMatrix<T> & row_switch(TMatrix<T> &m, size_t r1, size_t r2);
+
+    // 矩阵行乘以指定值。在原矩阵上执行r1行乘以value值，返回原矩阵引用。
+    static TMatrix<T> & row_multiply(TMatrix<T> &m, size_t r1, T value);
+
 }; // end class Matop
 
 // 矩阵转置
@@ -276,6 +283,28 @@ TMatrix<T> Matop<T>::transpose(const TMatrix<T> &m) {
         }
     }
     return std::move(mr);
+}
+
+// 矩阵行交换
+template<class T>
+TMatrix<T> & Matop::row_switch(TMatrix<T> &m, size_t r1, size_t r2) {
+    T temp;
+    for ( size_t c = 0; c < m.cols(); ++c) {
+        temp = m(r1, c);
+        m(r1, c) = m(r2, c);
+        m(r2, c) = temp;
+    }
+    return m;
+}
+
+// 矩阵行乘以指定值。在原矩阵上执行r1行乘以value值，返回原矩阵引用。
+template<class T>
+TMatrix<T> & Matop::row_multiply(TMatrix<T> &m, size_t r1, T value) {
+    for ( size_t c = 0; c < m.cols(); ++c) {
+        T & r = m( r1, c );
+        r *= value;
+    }
+    return m;
 }
 
 } // end namespace mars
