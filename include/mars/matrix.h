@@ -271,6 +271,14 @@ struct Matop {
     // 矩阵行乘以指定值。在原矩阵上执行r1行乘以value值，返回原矩阵引用。
     static TMatrix<T> & row_multiply(TMatrix<T> &m, size_t r1, T value);
 
+    // 矩阵行除以指定值。在原矩阵上执行r1行除以value值，返回原矩阵引用。
+    static TMatrix<T> & row_divide(TMatrix<T> &m, size_t r1, T value);
+    
+    // 行r2的元素乘以value后加到行r1, 行r1值变更，r2不变。(r1) = m(r2) * value + r1
+    static TMatrix<T> & row_multiply_add(TMatrix<T> &m, size_t r1, size_t r2, T value);
+
+    // 转换为规范阶梯矩阵
+    static TMatrix<T> & reduced_row_echelon(TMatrix<T> &m);
 }; // end class Matop
 
 // 矩阵转置
@@ -287,7 +295,7 @@ TMatrix<T> Matop<T>::transpose(const TMatrix<T> &m) {
 
 // 矩阵行交换
 template<class T>
-TMatrix<T> & Matop::row_switch(TMatrix<T> &m, size_t r1, size_t r2) {
+TMatrix<T> & Matop<T>::row_switch(TMatrix<T> &m, size_t r1, size_t r2) {
     T temp;
     for ( size_t c = 0; c < m.cols(); ++c) {
         temp = m(r1, c);
@@ -299,11 +307,63 @@ TMatrix<T> & Matop::row_switch(TMatrix<T> &m, size_t r1, size_t r2) {
 
 // 矩阵行乘以指定值。在原矩阵上执行r1行乘以value值，返回原矩阵引用。
 template<class T>
-TMatrix<T> & Matop::row_multiply(TMatrix<T> &m, size_t r1, T value) {
+TMatrix<T> & Matop<T>::row_multiply(TMatrix<T> &m, size_t r1, T value) {
     for ( size_t c = 0; c < m.cols(); ++c) {
         T & r = m( r1, c );
         r *= value;
     }
+    return m;
+}
+
+// 矩阵行除以指定值。在原矩阵上执行r1行除以value值，返回原矩阵引用。
+template<class T>
+TMatrix<T> & Matop<T>::row_divide(TMatrix<T> &m, size_t r1, T value) {
+    for ( size_t c = 0; c < m.cols(); ++c) {
+        T & r = m( r1, c );
+        r /= value;
+    }
+    return m;
+}
+
+// 行r2的元素乘以value后加到行r1, 行r1值变更，r2不变。(r1) = m(r2) * value + r1
+template<class T>
+TMatrix<T> & Matop<T>::row_multiply_add(TMatrix<T> &m, size_t r1, size_t r2, T value) {
+    for (size_t c = 0; c < m.cols(); ++c) {
+        T & r = m(r1, c);
+        r = m(r2, c) * value + r;
+    }
+    return m;
+}
+
+// 转换为规范阶梯矩阵
+template<class T>
+TMatrix<T> & Matop<T>::reduced_row_echelon(TMatrix<T> &m) {
+    size_t rows = m.rows();
+    size_t cols = m.cols();
+
+    assert(rows <= cols);    // rows > cols是无解的
+    
+    // 逐行处理
+    for( size_t r = 0; r < rows; ++r) {
+        const T & v0 = m(r, r);
+        if ( v0 == 0 ) {   // 对角线元素为0，则需要从后面找一个非零的行，进行交换，以便形成阶梯
+            for ( size_t r1 = r + 1; r1 < rows; ++r1) {
+                if ( m(r1, r1) != 0 ) {
+                    Matop<T>::row_switch(m, r, r1);
+                    break;
+                }
+            }
+            if ( m(r, r) == 0) continue;  // 没有不等于零的，就下一行
+        }
+
+        // 当前行对角线值（即首个非零值）变为1
+        Matop<T>::row_divide(m, r, m(r, r) );
+
+        // 遍历后续的行，进行消元操作
+        for( size_t n = r + 1; n < rows; ++n) {
+            Matop<T>::row_multiply_add(m, n, r, m(n, r) * (-1));
+        }
+    } // end for r
     return m;
 }
 

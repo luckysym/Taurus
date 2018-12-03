@@ -6,3 +6,4 @@ set( CMAKE_CXX_FLAGS "-std=c++11 -g" )
 
 # 构建tools子目录
 add_subdirectory(matrix)
+add_subdirectory(elimination)
