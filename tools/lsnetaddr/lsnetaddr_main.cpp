@@ -1,4 +1,4 @@
-#include <taurus/net/network.h>
+#include <mercury/net/network.h>
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -33,21 +33,21 @@ void print_help(const char * program) {
 }
 
 void list_host_addresses(const char * hostname) {
-    using namespace taurus::net;
+    using namespace mercury::net;
     InetAddress::Vector addrlist;
-    size_t n = InetAddress::GetAllByName(addrlist, hostname);
+    size_t n = InetAddress::get_all_by_name(addrlist, hostname);
     printf("%ld ip addresses found for hostname %s. \n", n, hostname);
     for ( size_t i = 0; i < n; ++i ) 
-        printf("%s\n", addrlist[i]->ToString().c_str());
+        printf("%s\n", addrlist[i]->str().c_str());
 }
 
 void list_local_addresses() {
-    using namespace taurus::net;
+    using namespace mercury::net;
     InetAddress::Vector addrlist;
-    size_t n = InetAddress::GetLocalHost(addrlist);
+    size_t n = InetAddress::get_localhost(addrlist);
     if ( n > 0 ) {
         for ( size_t i = 0; i < n; ++i ) 
-        printf("%s\n", addrlist[i]->ToString().c_str());
+        printf("%s\n", addrlist[i]->str().c_str());
     } else {
         printf("%ld ip addresses found in localhost. \n", n);
     }

@@ -5,4 +5,4 @@ LINK_DIRECTORIES(${PROJECT_ROOT_DIR}/build)
 
 # 本地IP地址枚举工具
 add_subdirectory(lsnetaddr)
-
+add_subdirectory(echoserver)

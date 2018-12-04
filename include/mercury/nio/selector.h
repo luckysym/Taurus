@@ -1,11 +1,15 @@
 #pragma once
 #include <mercury/error_info.h>
+#include <mercury/net/network.h>
 #include <vector>
 
 namespace mercury {
 namespace nio {
 
 class Selector;
+class ServerSocketChannel;
+class StreamSocketChannel;
+class DatagramSocketChannel;
 
 class SelectionKey {
 public:
@@ -31,7 +35,6 @@ public:
     bool   is_writable() const;
     bool   is_valid() const;
 }; // end class SelectionKey
-
 
 class SelectableChannel {
 public:
@@ -74,8 +77,20 @@ public:
 
 }; // end class Selector
 
-
 class ServerSocketChannel : public SelectableChannel {
+public:
+    ServerSocketChannel();
+    ~ServerSocketChannel();
+
+    bool accept(StreamSocketChannel &rSocketChannel, RuntimeError &e);
+    bool bind(const char * ip, int port, RuntimeError &e);
+    bool create(int domain, RuntimeError &e);
+    bool close(RuntimeError &e);
+    std::string local_address() const;
+    std::string local_address(RuntimeError &e) const;
+
+public:  // SelectableChannel
+    virtual int valid_ops() const;
 }; // end class ServerSocketChannel
 
 class StreamSocketChannel : public SelectableChannel {

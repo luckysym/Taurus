@@ -33,4 +33,4 @@ ENABLE_TESTING()
 add_subdirectory(test)
 
 # 构建tools子目录
-# add_subdirectory(tools)
+add_subdirectory(tools)

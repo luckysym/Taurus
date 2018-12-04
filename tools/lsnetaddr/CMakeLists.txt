@@ -8,4 +8,4 @@ set( CMAKE_CXX_FLAGS "-std=c++11" )
 project( lsnetaddr )
 
 ADD_EXECUTABLE(${PROJECT_NAME} lsnetaddr_main.cpp )
-target_link_libraries(${PROJECT_NAME} taurus )
+target_link_libraries(${PROJECT_NAME} mercury )
