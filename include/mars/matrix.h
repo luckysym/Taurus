@@ -345,7 +345,7 @@ TMatrix<T> & Matop<T>::reduced_row_echelon(TMatrix<T> &m) {
     
     // 逐行处理
     for( size_t r = 0; r < rows; ++r) {
-        const T & v0 = m(r, r);
+        T & v0 = m(r, r);
         if ( v0 == 0 ) {   // 对角线元素为0，则需要从后面找一个非零的行，进行交换，以便形成阶梯
             for ( size_t r1 = r + 1; r1 < rows; ++r1) {
                 if ( m(r1, r1) != 0 ) {
@@ -359,8 +359,9 @@ TMatrix<T> & Matop<T>::reduced_row_echelon(TMatrix<T> &m) {
         // 当前行对角线值（即首个非零值）变为1
         Matop<T>::row_divide(m, r, m(r, r) );
 
-        // 遍历后续的行，进行消元操作
-        for( size_t n = r + 1; n < rows; ++n) {
+        // 遍历所有的行，其余行本列元素变为0.
+        for( size_t n = 0; n < rows; ++n) {
+            if ( n == r ) continue;
             Matop<T>::row_multiply_add(m, n, r, m(n, r) * (-1));
         }
     } // end for r

@@ -33,6 +33,9 @@ public:
         DoubleMatrix mat = DoubleMatrix((double *)a, 3, 4);
         mat.print(cout);
 
+        Matop<double>::reduced_row_echelon(mat);
+        mat.print(cout);
+
         Matop<double>::row_switch(mat, 0, 2);
         mat.print(cout);
 
