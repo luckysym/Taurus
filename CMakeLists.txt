@@ -17,11 +17,11 @@ include_directories(
 # 生成库
 add_library( ${PROJECT_NAME} 
     ${PROJECT_SOURCE_DIR}/src/sys/system_error.cpp
-    ${PROJECT_SOURCE_DIR}/src/net/protocol.cpp
     ${PROJECT_SOURCE_DIR}/src/net/inet_address.cpp
     ${PROJECT_SOURCE_DIR}/src/net/socket_base.cpp
     ${PROJECT_SOURCE_DIR}/src/net/url.cpp
     ${PROJECT_SOURCE_DIR}/src/nio/buffer.cpp
+    ${PROJECT_SOURCE_DIR}/src/nio/server_socket_channel.cpp
 )
 
 # 设置项目根目录

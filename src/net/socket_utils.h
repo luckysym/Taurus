@@ -57,15 +57,29 @@ namespace net {
     }
 
     inline InetAddress * NewInetAddress(int domain, const char * host, RuntimeError & e) {
-        if ( domain == Protocol::DomainInet4 ) { 
+        if ( domain == AF_INET ) { 
             return new Inet4Address(host, e);
-        } else if ( domain == Protocol::DomainInet6 ) {
+        } else if ( domain == AF_INET6 ) {
             return new Inet6Address(host, e);
         } else {
             std::ostringstream oss;
             oss<<"Unknown inet address: "<<domain<<", "<<host;
             e.set(-1, oss.str().c_str(), "NewInetAddress");
             return nullptr;
+        }
+    }
+
+    inline std::string sock_proto_str(int af, int type, int proto = 0) {
+        if ( af == AF_INET ) {
+            if ( type == SOCK_STREAM ) return std::string("tcp");
+            else if ( type == SOCK_DGRAM) return std::string("udp");
+            else return std::string("inet");
+        } else if (af == AF_INET6 ) {
+            if ( type == SOCK_STREAM ) return std::string("tcp6");
+            else if ( type == SOCK_DGRAM) return std::string("udp6");
+            else return std::string("inet6");
+        } else {
+            return std::string("unknown");
         }
     }
 

@@ -1,5 +1,4 @@
 #include <mercury/net/network.h>
-#include <mercury/error_info.h>
 
 #include "socket_impl.h"
 #include "socket_opt_impl.h"
@@ -131,8 +130,7 @@ ServerSocket::ServerSocket() : SocketBase("ServerSocket") {}
 ServerSocket::~ServerSocket() {}
 
 bool ServerSocket::create(int domain, RuntimeError &e ) {
-    Protocol proto(domain, Protocol::TypeStream, 0);
-    return impl().Create( proto, e );
+    return impl().Create( domain, SOCK_STREAM, e );
 }
 
 bool ServerSocket::listen(int backlog, RuntimeError &errinfo) {
@@ -176,8 +174,7 @@ StreamSocket::StreamSocket() : SocketBase("StreamSocket") {}
 StreamSocket::~StreamSocket() {}
 
 bool StreamSocket::create(int domain, RuntimeError &e) {
-    Protocol proto(domain, Protocol::TypeStream, 0);
-    return impl().Create(proto, e);
+    return impl().Create(domain, SOCK_STREAM, e);
 }
 
 bool StreamSocket::connect(const char *ip, int port, RuntimeError &e) {
@@ -300,8 +297,7 @@ DatagramSocket::DatagramSocket() : SocketBase("DatagramSocket") {}
 DatagramSocket::~DatagramSocket() {}
 
 bool DatagramSocket::create(int domain, RuntimeError &e) {
-    Protocol proto(domain, Protocol::TypeDatagram, 0);
-    return impl().Create(proto, e);
+    return impl().Create(domain, SOCK_DGRAM, e);
 }
 
 ssize_t DatagramSocket::send(const DatagramPacket &data, RuntimeError &e) {

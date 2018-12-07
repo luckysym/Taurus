@@ -66,7 +66,7 @@ protected:
         CPPUNIT_ASSERT( ptrSocket != nullptr );
 
         RuntimeError errinfo;
-        CPPUNIT_ASSERT( ptrSocket->Create(Protocol::Tcp4, errinfo) );
+        CPPUNIT_ASSERT( ptrSocket->Create(AF_INET, SOCK_STREAM, errinfo) );
         CPPUNIT_ASSERT( ptrSocket->Fd() > 0 );
         CPPUNIT_ASSERT( ptrSocket->State() == SocketImpl::SOCK_STATE_CREATED );
         cout<<"socket created, fd: "<<ptrSocket->Fd()<<endl;

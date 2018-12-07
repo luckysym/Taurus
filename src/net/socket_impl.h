@@ -1,9 +1,7 @@
 #pragma once 
 #include <mercury/net/network.h>
-#include <mercury/error_info.h>
 #include <memory>
 #include <cassert>
-#include <stdexcept>
 #include <unistd.h>
 
 #include "socket_utils.h"
@@ -62,7 +60,7 @@ namespace net {
         bool  Bind(const char *host, int port, RuntimeError & errinfo);
         bool  Close(RuntimeError &e);
         bool  Connect(const char *ip, int port, RuntimeError & errinfo);
-        bool  Create(const Protocol &proto, RuntimeError & errinfo);
+        bool  Create(int af, int type, RuntimeError & errinfo);
         
         std::string GetLocalAddress(RuntimeError &error) const;
         std::string GetRemoteAddress(RuntimeError &errinfo) const;
@@ -140,23 +138,23 @@ namespace net {
         return true;
     }
 
-    inline bool SocketImpl::Create(const Protocol &proto, RuntimeError & errinfo) {
+    inline bool SocketImpl::Create(int af, int type, RuntimeError & errinfo) {
         // 是否已经创建判断，避免重复创建。
         if ( m_fd != INVALID_SOCKET ) throw std::runtime_error("socket already created, cannot create again");
 
         // 创建socket
-        int fd = ::socket(proto.domain(), proto.type(), proto.proto());
+        int fd = ::socket(af, type, 0);
         if ( fd == INVALID_SOCKET ) {
             std::ostringstream oss;
-            oss<<"socket() error, "<<sockerr<<" protocol: "<<proto.str();
+            oss<<"socket() error, "<<sockerr<<" protocol: "<<sock_proto_str(af, type, 0);
             errinfo.set(-1, oss.str().c_str(), "SocketImpl::Create");
             return false;
         }
 
         m_fd = fd;
         m_state = SOCK_STATE_CREATED;
-        m_domain = proto.domain();
-        m_socktype = proto.type();
+        m_domain = af;
+        m_socktype = type;
         return true;
     }
 
@@ -247,11 +245,11 @@ namespace net {
             error.set(-1, MakeSocketRuntimeError(oss).c_str(), "SocketImpl::GetLocalAddress");
             return std::string();
         }
-        if ( m_domain == Protocol::DomainInet4) {
+        if ( m_domain == AF_INET) {
             struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
             Inet4Address addr(paddr->sin_addr.s_addr);
             return addr.str();
-        } else if ( m_domain == Protocol::DomainInet6) {
+        } else if ( m_domain == AF_INET6) {
             struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
             Inet6Address addr(paddr->sin6_addr.s6_addr, 16);
             return addr.str();
@@ -273,10 +271,10 @@ namespace net {
             e.set(-1, oss.str().c_str(), "SocketImpl::GetLocalPort");
             return -1;
         }
-        if ( m_domain == Protocol::DomainInet4) {
+        if ( m_domain == AF_INET) {
             struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
             return ntohs(paddr->sin_port);
-        } else if ( m_domain == Protocol::DomainInet6) {
+        } else if ( m_domain == AF_INET6) {
             struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
             return ntohs(paddr->sin6_port);
         } else  {
@@ -297,10 +295,10 @@ namespace net {
             e.set(-1, oss.str().c_str(), "SocketImpl::GetRemotePort");
             return -1;
         }
-        if ( m_domain == Protocol::DomainInet4) {
+        if ( m_domain == AF_INET) {
             struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
             return ntohs(paddr->sin_port);
-        } else if ( m_domain == Protocol::DomainInet6) {
+        } else if ( m_domain == AF_INET6) {
             struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
             return ntohs(paddr->sin6_port);
         } else  {
@@ -321,11 +319,11 @@ namespace net {
             e.set(-1, MakeSocketRuntimeError(oss).c_str(), "SocketImpl::GetRemoteAddress");
             return std::string();
         }
-        if ( m_domain == Protocol::DomainInet4) {
+        if ( m_domain == AF_INET) {
             struct sockaddr_in * paddr = (struct sockaddr_in*)addrbuf;
             Inet4Address addr(paddr->sin_addr.s_addr);
             return addr.str();
-        } else if ( m_domain == Protocol::DomainInet6) {
+        } else if ( m_domain == AF_INET6) {
             struct sockaddr_in6 * paddr = (struct sockaddr_in6*)addrbuf;
             Inet6Address addr(paddr->sin6_addr.s6_addr, 16);
             return addr.str();

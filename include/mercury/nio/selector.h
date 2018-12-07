@@ -1,5 +1,5 @@
 #pragma once
-#include <mercury/error_info.h>
+#include <mercury/error.h>
 #include <mercury/net/network.h>
 #include <vector>
 
@@ -38,19 +38,31 @@ public:
 
 class SelectableChannel {
 public:
+    SelectableChannel();
+    virtual ~SelectableChannel();
+
+protected:
+    SelectableChannel(const SelectableChannel &other) = delete;
+    SelectableChannel(SelectableChannel && other);
+
+    SelectableChannel & operator=(const SelectableChannel& other) = delete;
+    SelectableChannel & operator=(SelectableChannel & other);
+
+public:
+
     SelectionKey * reg(Selector *selector, int ops, RuntimeError &e);
     SelectionKey * reg(Selector *selector, int ops, void *att, RuntimeError &e); 
     SelectionKey * key_for(Selector *selector);
     bool           is_registered() const;
+
 public:
     virtual int valid_ops() const = 0;
 }; // end class SelectableChannel
 
 
-class SelectorImpl;
-
 class Selector final {
 private:
+    class SelectorImpl;
     SelectorImpl * m_pImpl;
 
 public:
@@ -77,26 +89,5 @@ public:
 
 }; // end class Selector
 
-class ServerSocketChannel : public SelectableChannel {
-public:
-    ServerSocketChannel();
-    ~ServerSocketChannel();
-
-    bool accept(StreamSocketChannel &rSocketChannel, RuntimeError &e);
-    bool bind(const char * ip, int port, RuntimeError &e);
-    bool create(int domain, RuntimeError &e);
-    bool close(RuntimeError &e);
-    std::string local_address() const;
-    std::string local_address(RuntimeError &e) const;
-
-public:  // SelectableChannel
-    virtual int valid_ops() const;
-}; // end class ServerSocketChannel
-
-class StreamSocketChannel : public SelectableChannel {
-}; // end class StreamSocketChannel
-
-class DatagramSocketChannel : public SelectableChannel {
-}; // end class DatagramSocketChannel
 
 }} // end namespace mercury::nio

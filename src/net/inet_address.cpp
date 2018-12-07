@@ -148,15 +148,15 @@ ssize_t InetAddress::get_all_by_name(InetAddress::Vector & vecAddr, const char *
 
 
 Inet4Address::Inet4Address() 
-    : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
+    : InetAddress(AF_INET, &m_addr, sizeof(m_addr))
     , m_addr(INADDR_ANY) {}
 
 Inet4Address::Inet4Address(uint32_t addr) 
-    : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
+    : InetAddress(AF_INET, &m_addr, sizeof(m_addr))
     , m_addr(addr) {}
 
 Inet4Address::Inet4Address(const char * pszAddress, RuntimeError &errinfo) 
-    : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(m_addr))
+    : InetAddress(AF_INET, &m_addr, sizeof(m_addr))
     , m_addr(0) 
 {
     int r = inet_pton(AF_INET, pszAddress, &m_addr);
@@ -171,7 +171,7 @@ Inet4Address::Inet4Address(const char * pszAddress, RuntimeError &errinfo)
 }
 
 Inet4Address::Inet4Address(const Inet4Address &other) 
-    : InetAddress(Protocol::DomainInet4, &m_addr, sizeof(uint32_t)) 
+    : InetAddress(AF_INET, &m_addr, sizeof(uint32_t)) 
     , m_addr(other.m_addr) {}
 
 Inet4Address::~Inet4Address() {}
@@ -197,7 +197,7 @@ std::string Inet4Address::str() const {
 }
 
 Inet6Address::Inet6Address(const unsigned char addr[16], size_t n) 
-    : InetAddress(Protocol::DomainInet6, m_addr, sizeof(m_addr))
+    : InetAddress(AF_INET6, m_addr, sizeof(m_addr))
 {
     assert(n == 16);
     struct in6_addr * p1 = (struct in6_addr *)addr;
@@ -206,7 +206,7 @@ Inet6Address::Inet6Address(const unsigned char addr[16], size_t n)
 }
 
 Inet6Address::Inet6Address(const char *pszAddress, RuntimeError &errinfo) 
-    : InetAddress(Protocol::DomainInet6, m_addr, sizeof(m_addr)) {
+    : InetAddress(AF_INET6, m_addr, sizeof(m_addr)) {
     int r = inet_pton(AF_INET6, pszAddress, &m_addr);
     if ( r == 0 ) {
         std::string str;
@@ -219,7 +219,7 @@ Inet6Address::Inet6Address(const char *pszAddress, RuntimeError &errinfo)
 }
 
 Inet6Address::Inet6Address(const mercury::net::Inet6Address & other )
-    : InetAddress(Protocol::DomainInet6, m_addr, sizeof(m_addr)) 
+    : InetAddress(AF_INET6, m_addr, sizeof(m_addr)) 
 {
     struct in6_addr * p1 = (struct in6_addr *)other.m_addr;
     struct in6_addr * p0 = (struct in6_addr *)m_addr;
@@ -275,9 +275,9 @@ public:
     InetSocketAddressImpl(const InetAddress &rAddr, int port) 
     {
         m_port = port;
-        if ( rAddr.domain() == Protocol::DomainInet4) {
+        if ( rAddr.domain() == AF_INET) {
             m_ptrAddress.reset(new Inet4Address((const Inet4Address&)rAddr));
-        } else if ( rAddr.domain() == Protocol::DomainInet6) {
+        } else if ( rAddr.domain() == AF_INET6) {
             m_ptrAddress.reset(new Inet6Address((const Inet6Address&)rAddr));
         } else {
             throw std::runtime_error("InetSocketAddressImpl, invalid inet address domain");
@@ -289,9 +289,9 @@ public:
         if ( !other.m_ptrAddress ) return;   // 源地址为空，就不做复制了
 
         // 复制地址类
-        if ( other.Domain() == Protocol::DomainInet4) {
+        if ( other.Domain() == AF_INET) {
             m_ptrAddress.reset(new Inet4Address((const Inet4Address&)*other.m_ptrAddress));
-        } else if ( other.Domain() == Protocol::DomainInet6) {
+        } else if ( other.Domain() == AF_INET6) {
             m_ptrAddress.reset(new Inet6Address((const Inet6Address&)*other.m_ptrAddress));
         } else {
             throw std::runtime_error("InetSocketAddressImpl, invalid inet address domain");
@@ -312,20 +312,20 @@ public:
         // 地址为空时，默认返回IPv4 ANY地址
         if ( !m_ptrAddress ) {
             struct sockaddr_in * pinaddr = (struct sockaddr_in *)m_addrbuf;
-            pinaddr->sin_family = Protocol::DomainInet4;
+            pinaddr->sin_family = AF_INET;
             pinaddr->sin_port = htons(m_port);
             pinaddr->sin_addr.s_addr = INADDR_ANY;
             return (struct sockaddr *)pinaddr;
         }
 
         int af = m_ptrAddress->domain();
-        if ( af == Protocol::DomainInet4) {
+        if ( af == AF_INET) {
             struct sockaddr_in * pinaddr = (struct sockaddr_in *)m_addrbuf;
             pinaddr->sin_family = af;
             pinaddr->sin_port = htons(m_port);
             m_ptrAddress->address(&pinaddr->sin_addr.s_addr, sizeof(pinaddr->sin_addr.s_addr));
             return (struct sockaddr *)pinaddr;
-        } else if ( af == Protocol::DomainInet6 ) {
+        } else if ( af == AF_INET6 ) {
             struct sockaddr_in6 *pinaddr6 = (struct sockaddr_in6 *)m_addrbuf;
             pinaddr6->sin6_family = af;
             pinaddr6->sin6_port = htons(m_port);
@@ -339,8 +339,8 @@ public:
     socklen_t GetCAddressSize() const {
         if ( !m_ptrAddress ) return sizeof(struct sockaddr_in);
         int af = m_ptrAddress->domain();
-        if ( af == Protocol::DomainInet4 ) return sizeof(struct sockaddr_in);
-        else if ( af == Protocol::DomainInet6 ) return sizeof(struct sockaddr_in6);
+        if ( af == AF_INET ) return sizeof(struct sockaddr_in);
+        else if ( af == AF_INET6 ) return sizeof(struct sockaddr_in6);
         else throw std::runtime_error("InetSocketAddressImpl::GetCAddressSize, invalid inet address domain");
     }
 
@@ -412,7 +412,7 @@ std::string InetSocketAddress::str() const {
 
 int InetSocketAddress::domain() const {
     if ( m_pImpl ) m_pImpl->Domain();
-    else return Protocol::DomainInet4;   // 默认ipv4
+    else return AF_INET;   // 默认ipv4
 }
 
 struct sockaddr * InetSocketAddress::caddr()  {
